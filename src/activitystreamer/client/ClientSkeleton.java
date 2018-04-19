@@ -1,5 +1,6 @@
 package activitystreamer.client;
 
+import java.awt.Container;
 import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -44,7 +45,7 @@ public class ClientSkeleton extends Thread {
 	
 	@SuppressWarnings("unchecked")
 	public void sendActivityObject(JSONObject activityObj){
-		
+		//code here
 	}
 	
 	
