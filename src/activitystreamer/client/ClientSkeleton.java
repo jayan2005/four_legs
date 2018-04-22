@@ -9,6 +9,7 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
+import javax.swing.DebugGraphics;
 import javax.swing.SwingUtilities;
 
 import org.apache.logging.log4j.LogManager;
@@ -24,6 +25,9 @@ public class ClientSkeleton extends Thread {
 	private static ClientSkeleton clientSolution;
 	private TextFrame textFrame;
 	private JSONParser parser;
+	private JSONObject prevActivityObj;
+	private String username;
+	private String secretPassword;
 
 	private Socket socket;
 
@@ -41,7 +45,9 @@ public class ClientSkeleton extends Thread {
 	}
 
 	public void sendActivityObject(JSONObject activityObj) {
-
+		log.debug("Previous Command" + prevActivityObj);
+		//saveLoginDetails(activityObj);
+		
 		try {
 
 			initializeSocket();
@@ -59,28 +65,15 @@ public class ClientSkeleton extends Thread {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		prevActivityObj = activityObj;
 	}
 
 	private JSONObject readMessageFromServer() {
-		initializeSocket();
 		DataInputStream input;
 		try {
 			input = new DataInputStream(socket.getInputStream());
 			BufferedReader inreader = new BufferedReader(new InputStreamReader(input));
-			while (true) {
-				String data = inreader.readLine();
-				log.debug("Received from server: " + data);
-				try {
-					final JSONObject result = (JSONObject) parser.parse(data);
-					SwingUtilities.invokeLater(new Runnable() {
-						public void run() {
-							textFrame.setOutputText(result);
-						}
-					});
-				} catch (ParseException e) {
-					e.printStackTrace();
-				}
-			}
+			new MessageListener(inreader,textFrame).start();
 		} catch (IOException e1) {
 			e1.printStackTrace();
 		}
@@ -90,6 +83,7 @@ public class ClientSkeleton extends Thread {
 	private void initializeSocket() {
 		if (socket == null || socket.isClosed()) {
 			openSocket();
+			readMessageFromServer();
 		}
 	}
 	
@@ -102,6 +96,8 @@ public class ClientSkeleton extends Thread {
 	}
 
 	private Socket openSocket() {
+		log.debug("Host : " + Settings.getRemoteHostname() );
+		log.debug("port : " + Settings.getRemotePort());
 		try {
 			socket = new Socket(Settings.getRemoteHostname(), Settings.getRemotePort());
 		} catch (IOException ex) {
@@ -120,12 +116,33 @@ public class ClientSkeleton extends Thread {
 		logout();
 		closeSocket();
 	}
+	
+	/** handles server redirection **/
+	public void redirect(JSONObject redirect_command) throws IOException {
+			String newHost = redirect_command.get("hostname").toString();
+			int newPort = Integer.parseInt(redirect_command.get("port").toString());
+			
+			closeSocket();
+				log.debug("prevous activity message" + prevActivityObj);
+				log.debug("redirecting to server : " + newHost + ":"+newPort + "...");
+				Settings.setRemoteHostname(newHost);
+				Settings.setRemotePort(newPort);
+				//openSocket();
+				sendActivityObject(prevActivityObj);
+	}
+	
+	/*
+	private void saveLoginDetails(JSONObject loginData) {
+		if(loginData.get("command").equals("LOGIN")) {
+			this.username = loginData.get("username").toString();
+			log.debug("username - "+ this.username + " saved.");
+			this.secretPassword = loginData.get("secret").toString();
+			log.debug("password - "+ this.secretPassword + " saved.");
+		}
+	}*/
 
 	public void run() {
-		JSONObject result = readMessageFromServer();
-		if (result != null) {
-			textFrame.setOutputText(result);
-		}
+		
 	}
 
 }
