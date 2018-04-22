@@ -92,6 +92,14 @@ public class ClientSkeleton extends Thread {
 			openSocket();
 		}
 	}
+	
+	private void closeSocket() {
+		try {
+			socket.close();
+		} catch(IOException e) {
+			e.printStackTrace();
+		} 
+	}
 
 	private Socket openSocket() {
 		try {
@@ -101,9 +109,16 @@ public class ClientSkeleton extends Thread {
 		}
 		return null;
 	}
+	
+	private void logout() {
+		JSONObject logoutCommand = new JSONObject();
+		logoutCommand.put("command", "LOGOUT");
+		sendActivityObject(logoutCommand);
+	}
 
 	public void disconnect() {
-
+		logout();
+		closeSocket();
 	}
 
 	public void run() {
