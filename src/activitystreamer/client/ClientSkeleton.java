@@ -27,10 +27,11 @@ public class ClientSkeleton extends Thread {
 	private static ClientSkeleton clientSolution;
 	private TextFrame textFrame;
 	private JSONParser parser = new JSONParser();
+	private BufferedReader inreader;
 	
 	// IP and port
 	private static String ip = "sunrise.cis.unimelb.edu.au";
-	private static int port = 3781;
+	private static int port = 3780;
 	//private static String ip = "localhost";
 	
 	public static ClientSkeleton getInstance(){
@@ -50,34 +51,33 @@ public class ClientSkeleton extends Thread {
 	@SuppressWarnings("unchecked")
 	public void sendActivityObject(JSONObject activityObj){
 		//System.out.println(activityObj);
+				
+		//textFrame.setOutputText(activityObj);
+		//System.out.println(activityObj.toJSONString());
 		
 		//Connecting to the server
 		try(Socket socket = new Socket(ip, port);){
-			// Output and Input Stream
+			//Output and Input Stream
 			DataInputStream input = new DataInputStream(socket.
 					getInputStream());
 		    DataOutputStream output = new DataOutputStream(socket.
 		    		getOutputStream());
+		    inreader = new BufferedReader( new InputStreamReader(input));
 		    
-    	
     		System.out.println(activityObj.toJSONString());
-
-    		
-    		// Read hello from server..
-    		String message = input.readUTF();
-    		System.out.println(message);
-    		
+    		    		
     		// Send RMI to Server
-    		output.writeUTF(activityObj.toJSONString());
+    		output.write(activityObj.toJSONString().getBytes());
+    		output.write("\r".getBytes());
     		output.flush();
     		
     		// Print out results received from server..
-    		String result = input.readUTF();
-    		System.out.println("Received from server: "+result);
-    		
+    		String server_reply_msg = inreader.readLine();
+    		System.out.println("Received from server: "+server_reply_msg);
+
     		// Displaying results from the server in the GUI
     		try {
-    			JSONObject JSON_server_response = (JSONObject) parser.parse(result);
+    			JSONObject JSON_server_response = (JSONObject) parser.parse(server_reply_msg);
     			textFrame.setOutputText(JSON_server_response);
 			} catch (ParseException e1) {
 				log.error("invalid JSON object entered into input text field, data not sent");
@@ -88,7 +88,6 @@ public class ClientSkeleton extends Thread {
 		} catch (IOException e) {
 			
 		}
-
 	}
 	
 	
