@@ -37,7 +37,13 @@ public class ClientSkeleton extends Thread {
 		start();
 	}
 	
-	
+	@SuppressWarnings("unchecked")
+	public void ActivityMessage() {
+		
+		JSONObject send_to_server = new JSONObject();
+		
+		send_to_server.put("comand", "ACTIVITY_MESSAGE");
+		
 	
 	
 	
