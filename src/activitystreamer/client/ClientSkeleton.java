@@ -18,6 +18,7 @@ import org.json.simple.parser.ParseException;
 
 import java.net.UnknownHostException;
 
+import javax.management.openmbean.OpenDataException;
 import javax.swing.JTextArea;
 
 import activitystreamer.util.Settings;
@@ -31,11 +32,6 @@ public class ClientSkeleton extends Thread {
 	private DataInputStream input;
 	private DataOutputStream output;
 	private Socket socket;
-	
-	// IP and port
-	private static String ip = "sunrise.cis.unimelb.edu.au";
-	private static int port = 3780;
-	//private static String ip = "localhost";
 	
 	public static ClientSkeleton getInstance(){
 		if(clientSolution==null){
@@ -60,7 +56,7 @@ public class ClientSkeleton extends Thread {
 		//System.out.println(activityObj.toJSONString());
 		
 		//Connecting to the server
-		try(Socket socket = new Socket(ip, port);){
+		try(Socket socket = new Socket(Settings.getRemoteHostname(), Settings.getRemotePort());){
 			//Output and Input Stream
 			input = new DataInputStream(socket.
 					getInputStream());

@@ -109,7 +109,8 @@ public class TextFrame extends JFrame implements ActionListener {
 
 	private JSONObject errorMsgJSON(String msg) {
 		JSONObject errorJSON = new JSONObject();
-		errorJSON.put("INFO", msg);
+		errorJSON.put("command", "INVALID_MESSAGE");
+		errorJSON.put("info", msg);
 		
 		return errorJSON;
 	}
