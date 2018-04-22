@@ -7,6 +7,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.net.UnknownHostException;
+
+import javax.swing.SwingUtilities;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -20,42 +23,94 @@ public class ClientSkeleton extends Thread {
 	private static final Logger log = LogManager.getLogger();
 	private static ClientSkeleton clientSolution;
 	private TextFrame textFrame;
-	
+	private JSONParser parser;
 
-	
-	public static ClientSkeleton getInstance(){
-		if(clientSolution==null){
+	private Socket socket;
+
+	public static ClientSkeleton getInstance() {
+		if (clientSolution == null) {
 			clientSolution = new ClientSkeleton();
 		}
 		return clientSolution;
 	}
-	
-	public ClientSkeleton(){
-		
-		
+
+	public ClientSkeleton() {
 		textFrame = new TextFrame();
+		parser = new JSONParser();
 		start();
 	}
-	
-	
-	
-	
-	
-	
-	@SuppressWarnings("unchecked")
-	public void sendActivityObject(JSONObject activityObj){
-		
+
+	public void sendActivityObject(JSONObject activityObj) {
+
+		try {
+
+			initializeSocket();
+			// Output and Input Stream
+			DataOutputStream output = new DataOutputStream(socket.getOutputStream());
+
+			log.debug(activityObj.toJSONString());
+
+			// Send RMI to Server
+			output.write(activityObj.toJSONString().getBytes());
+			output.write("\r".getBytes());
+			output.flush();
+		} catch (UnknownHostException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
-	
-	
-	public void disconnect(){
-		
+
+	private JSONObject readMessageFromServer() {
+		initializeSocket();
+		DataInputStream input;
+		try {
+			input = new DataInputStream(socket.getInputStream());
+			BufferedReader inreader = new BufferedReader(new InputStreamReader(input));
+			while (true) {
+				String data = inreader.readLine();
+				log.debug("Received from server: " + data);
+				try {
+					final JSONObject result = (JSONObject) parser.parse(data);
+					SwingUtilities.invokeLater(new Runnable() {
+						public void run() {
+							textFrame.setOutputText(result);
+						}
+					});
+				} catch (ParseException e) {
+					e.printStackTrace();
+				}
+			}
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		}
+		return null;
 	}
-	
-	
-	public void run(){
+
+	private void initializeSocket() {
+		if (socket == null || socket.isClosed()) {
+			openSocket();
+		}
+	}
+
+	private Socket openSocket() {
+		try {
+			socket = new Socket(Settings.getRemoteHostname(), Settings.getRemotePort());
+		} catch (IOException ex) {
+			ex.printStackTrace();
+		}
+		return null;
+	}
+
+	public void disconnect() {
 
 	}
 
-	
+	public void run() {
+		JSONObject result = readMessageFromServer();
+		if (result != null) {
+			textFrame.setOutputText(result);
+		}
+	}
+
 }
