@@ -26,8 +26,8 @@ public class ClientSkeleton extends Thread {
 	private TextFrame textFrame;
 	private JSONParser parser;
 	private JSONObject prevActivityObj;
-	//private String username;
-	//private String secretPassword;
+	private String username;
+	private String secretPassword;
 
 	private Socket socket;
 
@@ -119,17 +119,16 @@ public class ClientSkeleton extends Thread {
 	
 	/** handles server redirection **/
 	public void redirect(JSONObject redirect_command) throws IOException {
-			//reading new host and port from server response
 			String newHost = redirect_command.get("hostname").toString();
 			int newPort = Integer.parseInt(redirect_command.get("port").toString());
 			
-			closeSocket(); 
-			log.debug("prevous activity message" + prevActivityObj);
-			log.debug("redirecting to server : " + newHost + ":"+newPort + "...");
-			Settings.setRemoteHostname(newHost);
-			Settings.setRemotePort(newPort);
-			
-			sendActivityObject(prevActivityObj);
+			closeSocket();
+				log.debug("prevous activity message" + prevActivityObj);
+				log.debug("redirecting to server : " + newHost + ":"+newPort + "...");
+				Settings.setRemoteHostname(newHost);
+				Settings.setRemotePort(newPort);
+				//openSocket();
+				sendActivityObject(prevActivityObj);
 	}
 	
 	/*
