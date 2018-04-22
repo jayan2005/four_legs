@@ -28,6 +28,8 @@ public class ClientSkeleton extends Thread {
 	private TextFrame textFrame;
 	private JSONParser parser = new JSONParser();
 	private BufferedReader inreader;
+	private DataInputStream input;
+	private DataOutputStream output;
 	
 	// IP and port
 	private static String ip = "sunrise.cis.unimelb.edu.au";
@@ -58,9 +60,9 @@ public class ClientSkeleton extends Thread {
 		//Connecting to the server
 		try(Socket socket = new Socket(ip, port);){
 			//Output and Input Stream
-			DataInputStream input = new DataInputStream(socket.
+			input = new DataInputStream(socket.
 					getInputStream());
-		    DataOutputStream output = new DataOutputStream(socket.
+		    output = new DataOutputStream(socket.
 		    		getOutputStream());
 		    inreader = new BufferedReader( new InputStreamReader(input));
 		    
@@ -72,16 +74,18 @@ public class ClientSkeleton extends Thread {
     		output.flush();
     		
     		// Print out results received from server..
-    		String server_reply_msg = inreader.readLine();
-    		System.out.println("Received from server: "+server_reply_msg);
-
-    		// Displaying results from the server in the GUI
-    		try {
-    			JSONObject JSON_server_response = (JSONObject) parser.parse(server_reply_msg);
-    			textFrame.setOutputText(JSON_server_response);
-			} catch (ParseException e1) {
-				log.error("invalid JSON object entered into input text field, data not sent");
-			}
+    		if(!activityObj.get("command").equals("LOGOUT")) {
+	    		String server_reply_msg = inreader.readLine();
+	    		System.out.println("Received from server: "+server_reply_msg);
+	
+	    		// Displaying results from the server in the GUI
+	    		try {
+	    			JSONObject JSON_server_response = (JSONObject) parser.parse(server_reply_msg);
+	    			textFrame.setOutputText(JSON_server_response);
+				} catch (ParseException e1) {
+					log.error("invalid JSON object entered into input text field, data not sent");
+				}
+    		}
 		    
 		} catch (UnknownHostException e) {
 			e.printStackTrace();
