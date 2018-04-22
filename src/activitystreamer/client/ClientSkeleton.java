@@ -30,6 +30,7 @@ public class ClientSkeleton extends Thread {
 	private BufferedReader inreader;
 	private DataInputStream input;
 	private DataOutputStream output;
+	private Socket socket;
 	
 	// IP and port
 	private static String ip = "sunrise.cis.unimelb.edu.au";
@@ -46,6 +47,7 @@ public class ClientSkeleton extends Thread {
 	
 	public ClientSkeleton(){
 		textFrame = new TextFrame();
+		//this.socket = socket;
 		start();
 	}
 
@@ -104,7 +106,7 @@ public class ClientSkeleton extends Thread {
 	    try {
             inreader.close();
             output.close();
-            //Socket.close();
+            this.socket.close();
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
