@@ -72,16 +72,16 @@ public class ClientSkeleton extends Thread {
     		output.flush();
     		
     		// Print out results received from server..
-    		String server_reply_msg = inreader.readLine();
-    		System.out.println("Received from server: "+server_reply_msg);
+    		//String server_reply_msg = inreader.readLine();
+    		//System.out.println("Received from server: "+server_reply_msg);
 
     		// Displaying results from the server in the GUI
-    		try {
-    			JSONObject JSON_server_response = (JSONObject) parser.parse(server_reply_msg);
-    			textFrame.setOutputText(JSON_server_response);
-			} catch (ParseException e1) {
-				log.error("invalid JSON object entered into input text field, data not sent");
-			}
+    		//try {
+    			//JSONObject JSON_server_response = (JSONObject) parser.parse(server_reply_msg);
+    			//textFrame.setOutputText(JSON_server_response);
+			//} catch (ParseException e1) {
+				//log.error("invalid JSON object entered into input text field, data not sent");
+			//}
 		    
 		} catch (UnknownHostException e) {
 			e.printStackTrace();
@@ -92,7 +92,11 @@ public class ClientSkeleton extends Thread {
 	
 	
 	public void disconnect(){
-		
+
+	    JSONObject diconnect_command = new JSONObject();
+	    diconnect_command.put("command" , "LOGOUT");
+	    sendActivityObject(diconnect_command);
+
 	}
 	
 	
