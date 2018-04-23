@@ -35,15 +35,19 @@ public class ClientSkeleton extends Thread {
 	}
 
 	public ClientSkeleton() {
-		textFrame = new TextFrame();
+		//textFrame = new TextFrame();
+		new LoginFrame();
 		parser = new JSONParser();
 		start();
 	}
-
-	public void sendActivityObject(JSONObject activityObj) {
-
+	
+	public void login(String username, String secret) {
+		
+	}
+	
+	
+	public JSONObject sendAndReceive(JSONObject request) {
 		try {
-
 			initializeSocket();
 			// Output and Input Stream
 			DataOutputStream output = new DataOutputStream(socket.getOutputStream());
@@ -61,6 +65,52 @@ public class ClientSkeleton extends Thread {
 		}
 	}
 
+	public void sendActivityObject(JSONObject activityObj) {
+		try {
+			initializeSocket();
+			// Output and Input Stream
+			DataOutputStream output = new DataOutputStream(socket.getOutputStream());
+
+			log.debug(activityObj.toJSONString());
+
+			// Send RMI to Server
+			output.write(activityObj.toJSONString().getBytes());
+			output.write("\r".getBytes());
+			output.flush();
+		} catch (UnknownHostException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	
+	private JSONObject readMessageFromServerOnce() {
+		DataInputStream input;
+		try {
+			input = new DataInputStream(socket.getInputStream());
+			BufferedReader inreader = new BufferedReader(new InputStreamReader(input));
+			while (true) {
+				String data = inreader.readLine();
+				log.debug("Received from server: " + data);
+				try {
+					final JSONObject result = (JSONObject) parser.parse(data);
+					SwingUtilities.invokeLater(new Runnable() {
+						public void run() {
+							textFrame.setOutputText(result);
+						}
+					});
+				} catch (ParseException e) {
+					e.printStackTrace();
+				}
+			}
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		}
+		return null;
+	}
+	
+	
 	private JSONObject readMessageFromServer() {
 		initializeSocket();
 		DataInputStream input;
@@ -122,10 +172,6 @@ public class ClientSkeleton extends Thread {
 	}
 
 	public void run() {
-		JSONObject result = readMessageFromServer();
-		if (result != null) {
-			textFrame.setOutputText(result);
-		}
 	}
 
 }
