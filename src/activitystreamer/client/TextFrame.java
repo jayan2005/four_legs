@@ -36,6 +36,8 @@ public class TextFrame extends JFrame implements ActionListener {
 	
 	public TextFrame(){
 		setTitle("ActivityStreamer Text I/O");
+		
+		
 		JPanel mainPanel = new JPanel();
 		mainPanel.setLayout(new GridLayout(1,2));
 		JPanel inputPanel = new JPanel();
@@ -94,7 +96,7 @@ public class TextFrame extends JFrame implements ActionListener {
 			JSONObject obj;
 			try {
 				obj = (JSONObject) parser.parse(msg);
-				ClientSkeleton.getInstance().sendActivityObject(obj);
+				ClientSkeleton.getInstance().send(obj);
 			} catch (ParseException e1) {
 				log.error("invalid JSON object entered into input text field, data not sent");
 			}
