@@ -31,4 +31,5 @@ public interface Command {
 		INVALID_MESSAGE
 	}
 	
+	String getName();
 }

@@ -10,6 +10,7 @@ public abstract class AbstractCommand implements Command {
 		this.name = name;
 	}
 	
+	@Override
 	public String getName() {
 		return name;
 	}

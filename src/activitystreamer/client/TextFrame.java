@@ -5,18 +5,13 @@ import java.awt.Color;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JFrame;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
-import javax.swing.KeyStroke;
 import javax.swing.border.Border;
 
 import org.apache.logging.log4j.LogManager;
@@ -42,24 +37,6 @@ public class TextFrame extends JFrame implements ActionListener {
 	public TextFrame(){
 		setTitle("ActivityStreamer Text I/O");
 		
-		
-		JMenuBar menuBar = new JMenuBar();
-		
-		//Build the first menu.
-		JMenu menu = new JMenu("File");
-		menuBar.add(menu);
-		
-		JMenuItem menuItem = new JMenuItem("Settings");
-		menuItem.addActionListener(new ActionListener() {
-			
-			@Override
-			public void actionPerformed(ActionEvent action) {
-				new SettingsDialog(TextFrame.this);
-			}
-		});
-		menu.add(menuItem);
-		
-		setJMenuBar(menuBar);
 		
 		JPanel mainPanel = new JPanel();
 		mainPanel.setLayout(new GridLayout(1,2));
@@ -118,7 +95,7 @@ public class TextFrame extends JFrame implements ActionListener {
 			JSONObject obj;
 			try {
 				obj = (JSONObject) parser.parse(msg);
-				ClientSkeleton.getInstance().sendActivityObject(obj);
+				ClientSkeleton.getInstance().send(obj);
 			} catch (ParseException e1) {
 				log.error("invalid JSON object entered into input text field, data not sent");
 			}
