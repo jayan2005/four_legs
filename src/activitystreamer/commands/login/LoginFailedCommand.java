@@ -9,6 +9,7 @@ public class LoginFailedCommand extends AbstractCommand {
 	
 	public LoginFailedCommand(String info) {
 		super(Command.Names.LOGIN_FAILED.toString());
+		this.info = info;
 	}
 
 	public String getInfo() {

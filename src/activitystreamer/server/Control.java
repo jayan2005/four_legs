@@ -1,6 +1,7 @@
 package activitystreamer.server;
 
 import java.io.IOException;
+
 import java.net.Socket;
 import java.util.ArrayList;
 
@@ -11,6 +12,13 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
+import activitystreamer.commands.json.builder.CommandJsonBuilder;
+import activitystreamer.commands.json.builders.impl.CommandJsonBuilderFactoryImpl;
+import activitystreamer.commands.login.LoginFailedCommand;
+import activitystreamer.commands.login.LoginSuccessCommand;
+import activitystreamer.commands.misc.LogoutCommand;
+import activitystreamer.commands.register.RegisterFailedCommand;
+import activitystreamer.commands.register.RegisterSuccessCommand;
 import activitystreamer.util.Settings;
 
 public class Control extends Thread {
@@ -78,32 +86,47 @@ public class Control extends Thread {
 				if(client_msg.containsKey("secret"))
 					secret = client_msg.get("secret").toString();
 			}
+			
+			log.debug("Secret : " + secret);
 		} catch (ParseException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
 		if (client_msg.get("command").equals("REGISTER")) {
-			log.debug("REGISTER command received");
+			//log.debug("REGISTER command received");
 			
 			RegisterUser newUser = new RegisterUser(username, secret, listOfUsersAL);
 			
 			if(newUser.addUser()) {
 				listOfUsersAL = newUser.getUpdatedUserList();
 				log.debug("User registration successful");
-
+				
+				/*
 				for(int i=0; i < listOfUsersAL.size(); i ++) {
 					User testuser = new User();
 					testuser = listOfUsersAL.get(i);
 					System.out.println("Username : " + testuser.getUsername());
-				}
-				//send message to client
-				return false;
+				}*/
+				
+				//User register success command
+				RegisterSuccessCommand registerSuccessMsg = new RegisterSuccessCommand("Register success for "+ username);
+				CommandJsonBuilder<RegisterSuccessCommand> registerSuccessCommandJsonBuilder = CommandJsonBuilderFactoryImpl.getInstance()
+						.getJsonBuilder(registerSuccessMsg);
+				
+				JSONObject registerSuccessCommandJsonMsg = registerSuccessCommandJsonBuilder.buildJsonObject(registerSuccessMsg);
+				if(con.writeMsg(registerSuccessCommandJsonMsg.toJSONString()))  // Check message sent
+					return false; // will keep connection open
 			}
 			
-			// send message user already registered
-			log.debug("User is already registered");
-			return true; //should we close the server connection if user is already registered?
+			// User already registered command
+			RegisterFailedCommand registerFailedMsg = new RegisterFailedCommand(username + " is already registered with the system");
+			CommandJsonBuilder<RegisterFailedCommand> registerFailedCommandJsonBuilder = CommandJsonBuilderFactoryImpl.getInstance()
+					.getJsonBuilder(registerFailedMsg);
+			
+			JSONObject registerFailedCommandJsonMsg = registerFailedCommandJsonBuilder.buildJsonObject(registerFailedMsg);
+			if(con.writeMsg(registerFailedCommandJsonMsg.toJSONString())) // Check message sent
+				return true; //will close connection.
 		}
 		
 		if (client_msg.get("command").equals("LOGIN")) {
@@ -111,13 +134,26 @@ public class Control extends Thread {
 			
 			Login newLogin = new Login(username, secret);
 			if(newLogin.logUserIn()) {
-				System.out.println("User login success");
-				return false;
+				//System.out.println("User login success");
+				
+				//Send LOGIN_SUCCESS command to client
+				LoginSuccessCommand loginSuccessCommandMsg = new LoginSuccessCommand("Logged in as user " + username);
+				CommandJsonBuilder<LoginSuccessCommand> loginSuccessCommandJsonBuilder = CommandJsonBuilderFactoryImpl.getInstance()
+						.getJsonBuilder(loginSuccessCommandMsg);
+				
+				JSONObject loginSuccessCommandJsonMsg = loginSuccessCommandJsonBuilder.buildJsonObject(loginSuccessCommandMsg);
+				if(con.writeMsg(loginSuccessCommandJsonMsg.toJSONString())) // Check message sent
+					return false; //will close connection.
 			}
 			
-			//Send login fail message
-			System.out.println("User login failed");
-			return true;
+			//Send LOGIN_FAILED command to client
+			LoginFailedCommand loginFailedCommandMsg = new LoginFailedCommand("Attempt to login with wrong secret");
+			CommandJsonBuilder<LoginFailedCommand> loginFailedCommandJsonBuilder = CommandJsonBuilderFactoryImpl.getInstance()
+					.getJsonBuilder(loginFailedCommandMsg);
+			
+			JSONObject loginFailedCommandJsonMsg = loginFailedCommandJsonBuilder.buildJsonObject(loginFailedCommandMsg);
+			if(con.writeMsg(loginFailedCommandJsonMsg.toJSONString())) // Check message sent
+				return true; //will close connection.
 		}
 		
 		if (client_msg.get("command").equals("ACTIVITY_MESSAGE")) {
@@ -200,4 +236,5 @@ public class Control extends Thread {
 	public ArrayList<User> getRegisteredUserList(){
 		return this.listOfUsersAL;
 	}
+	
 }

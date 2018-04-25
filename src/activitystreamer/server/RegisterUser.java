@@ -2,6 +2,8 @@ package activitystreamer.server;
 
 import java.util.ArrayList;
 
+import activitystreamer.util.Settings;
+
 public class RegisterUser {
 	
 	private String username;
@@ -15,7 +17,7 @@ public class RegisterUser {
 		this.userListAL = listOfUsersAL;
 	}
 	
-	/** Registering new user **/
+	/** Will return true one the user is registered **/
 	public boolean addUser() {
 		
 		if(!isUserRegistered()) {
@@ -31,14 +33,14 @@ public class RegisterUser {
 		return false;
 	}
 	
-	/** Checks whether user is already registered **/
+	/** Checks whether user already registered **/
 	public boolean isUserRegistered() {
 		User checkUser = new User();
 		
-		for(int i=0 ; i < userListAL.size(); i++) {
-			checkUser = userListAL.get(i);
+		for(int i=0 ; i < Control.getInstance().getRegisteredUserList().size(); i++) {
+			checkUser = Control.getInstance().getRegisteredUserList().get(i);
 			if(checkUser.getUsername().equals(this.username)) {
-				System.out.print("** Checking registry : User found **");
+				System.out.print("Checking registry : User Already exists.");
 				return true;
 			}
 		}
@@ -46,7 +48,7 @@ public class RegisterUser {
 		return false;
 	} 
 	
-	/** Returns current registered user list **/
+	/** Returns registered user list **/
 	public ArrayList<User> getUpdatedUserList(){
 		return this.userListAL;
 	}
