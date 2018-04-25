@@ -7,6 +7,10 @@ import java.util.ArrayList;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
+
 import activitystreamer.util.Settings;
 
 public class Control extends Thread {
@@ -53,6 +57,38 @@ public class Control extends Thread {
 	 * Return true if the connection should close.
 	 */
 	public synchronized boolean process(Connection con,String msg){
+		log.debug("Server received : " + msg);
+		
+		//Convert msg JSON string to JSON object
+		JSONParser parser = new JSONParser();
+		JSONObject client_msg = new JSONObject();
+		try {
+			client_msg = (JSONObject) parser.parse(msg);
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		log.debug("Command received : " + client_msg.get("command").toString());
+		
+		if (client_msg.get("command").equals("REGISTER")) {
+			log.debug("REGISTER command received");
+			return false;
+		}
+		
+		if (client_msg.get("command").equals("LOGIN")) {
+			log.debug("LOGIN command received");
+			return false;
+		}
+		
+		if (client_msg.get("command").equals("ACTIVITY_MESSAGE")) {
+			log.debug("ACTIVITY_MESSAGE command received");
+			return false;
+		}
+		
+		if (client_msg.get("command").equals("LOGOUT")) {
+			return true;
+		}
 		return true;
 	}
 	

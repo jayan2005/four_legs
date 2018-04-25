@@ -1,6 +1,7 @@
 package activitystreamer.client;
 
 import java.io.BufferedReader;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -99,7 +100,8 @@ public class ClientSkeleton extends Thread {
 		log.debug("Host : " + Settings.getRemoteHostname() );
 		log.debug("port : " + Settings.getRemotePort());
 		try {
-			socket = new Socket(Settings.getRemoteHostname(), Settings.getRemotePort());
+			//socket = new Socket(Settings.getRemoteHostname(), Settings.getRemotePort());
+			socket = new Socket(Settings.getLocalHostname(), Settings.getLocalPort());
 		} catch (IOException ex) {
 			ex.printStackTrace();
 		}
