@@ -18,6 +18,7 @@ public class Control extends Thread {
 	private static ArrayList<Connection> connections;
 	private static boolean term=false;
 	private static Listener listener;
+	private ArrayList<User> listOfUsersAL;
 	
 	protected static Control control = null;
 	
@@ -29,6 +30,10 @@ public class Control extends Thread {
 	}
 	
 	public Control() {
+		
+		//initializing user list array
+		listOfUsersAL = new ArrayList();
+		
 		// initialize the connections array
 		connections = new ArrayList<Connection>();
 		// start a listener
@@ -73,11 +78,35 @@ public class Control extends Thread {
 		
 		if (client_msg.get("command").equals("REGISTER")) {
 			log.debug("REGISTER command received");
-			return false;
+			
+			String username = client_msg.get("username").toString();
+			String secret = client_msg.get("secret").toString();
+			RegisterUser newUser = new RegisterUser(username, secret, listOfUsersAL);
+			
+			if(newUser.addUser()) {
+				listOfUsersAL = newUser.getUpdatedUserList();
+				log.debug("User registration successful");
+
+				for(int i=0; i < listOfUsersAL.size(); i ++) {
+					User testuser = new User();
+					testuser = listOfUsersAL.get(i);
+					System.out.println("Username : " + testuser.getUsername());
+				}
+				//send message to client
+				return false;
+			} else {
+				// send message user already registered
+				log.debug("User is already registered");
+				return true; //should we close the server connection if user is already registered?
+			}
 		}
 		
 		if (client_msg.get("command").equals("LOGIN")) {
 			log.debug("LOGIN command received");
+
+			String username = client_msg.get("username").toString();
+			String secret = client_msg.get("secret").toString();
+			
 			return false;
 		}
 		
