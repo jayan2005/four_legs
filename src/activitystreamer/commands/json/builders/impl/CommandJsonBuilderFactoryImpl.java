@@ -25,6 +25,8 @@ public class CommandJsonBuilderFactoryImpl implements CommandJsonBuilderFactory 
 		builders.put(Command.Names.LOGIN_SUCCESS.toString(), new LoginSuccessCommandJsonBuilderImpl());
 		builders.put(Command.Names.LOGIN_FAILED.toString(), new LoginFailedCommandJsonBuilderImpl());
 		builders.put(Command.Names.LOGOUT.toString(), new LogoutCommandJsonBuilderImpl());
+		
+		builders.put(Command.Names.INVALID_MESSAGE.toString(), new InvalidMessageCommandJsonBuilderImpl());
 	}
 	
 	public static CommandJsonBuilderFactoryImpl getInstance() {

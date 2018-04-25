@@ -7,7 +7,6 @@ import activitystreamer.util.Settings;
 public class Login {
 	private String username;
 	private String secret;
-	//private ArrayList<User> userlist;
 
 	public Login(String username, String secret) {
 		this.username = username;
@@ -20,12 +19,13 @@ public class Login {
 			return true; //login success
 		}
 		
-		if(this.username == "anonymous")
+		if(this.username.equals("anonymous"))
 			return true; //login success
 		
 		return false; //login fail
 	}
 	
+	//Matching username and secret to verify login details
 	public boolean isLoginDetailsCorrect() {
 		User loginClient = new User();
 		for(int i=0; i < Control.getInstance().getRegisteredUserList().size(); i++) {

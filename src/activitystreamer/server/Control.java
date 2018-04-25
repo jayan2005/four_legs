@@ -16,6 +16,7 @@ import activitystreamer.commands.json.builder.CommandJsonBuilder;
 import activitystreamer.commands.json.builders.impl.CommandJsonBuilderFactoryImpl;
 import activitystreamer.commands.login.LoginFailedCommand;
 import activitystreamer.commands.login.LoginSuccessCommand;
+import activitystreamer.commands.misc.InvalidMessageCommand;
 import activitystreamer.commands.misc.LogoutCommand;
 import activitystreamer.commands.register.RegisterFailedCommand;
 import activitystreamer.commands.register.RegisterSuccessCommand;
@@ -72,7 +73,7 @@ public class Control extends Thread {
 	public synchronized boolean process(Connection con,String msg){
 		log.debug("Server received : " + msg);
 		String username = null;
-		String secret = null;
+		String secret = "";
 		
 		//Convert msg JSON string to JSON object
 		JSONParser parser = new JSONParser();
@@ -80,10 +81,10 @@ public class Control extends Thread {
 		try {
 			client_msg = (JSONObject) parser.parse(msg);
 			
-			if(client_msg.get("command").equals("REGISTER") || client_msg.get("command").equals("LOGIN")) {
+			if(client_msg.get("command").equals("REGISTER") || client_msg.get("command").equals("LOGIN") || client_msg.get("command").equals("ACTIVITY_MESSAGE")) {
 				username = client_msg.get("username").toString();
 				
-				if(client_msg.containsKey("secret"))
+				if(client_msg.containsKey("secret") && (client_msg.get("secret") != null))
 					secret = client_msg.get("secret").toString();
 			}
 			
@@ -127,44 +128,51 @@ public class Control extends Thread {
 			JSONObject registerFailedCommandJsonMsg = registerFailedCommandJsonBuilder.buildJsonObject(registerFailedMsg);
 			if(con.writeMsg(registerFailedCommandJsonMsg.toJSONString())) // Check message sent
 				return true; //will close connection.
-		}
-		
-		if (client_msg.get("command").equals("LOGIN")) {
-			log.debug("LOGIN command received");
 			
-			Login newLogin = new Login(username, secret);
-			if(newLogin.logUserIn()) {
-				//System.out.println("User login success");
+		} else if (client_msg.get("command").equals("LOGIN")) {
+				log.debug("LOGIN command received");
 				
-				//Send LOGIN_SUCCESS command to client
-				LoginSuccessCommand loginSuccessCommandMsg = new LoginSuccessCommand("Logged in as user " + username);
-				CommandJsonBuilder<LoginSuccessCommand> loginSuccessCommandJsonBuilder = CommandJsonBuilderFactoryImpl.getInstance()
-						.getJsonBuilder(loginSuccessCommandMsg);
+				Login newLogin = new Login(username, secret);
+				if(newLogin.logUserIn()) {
+					//System.out.println("User login success");
+					
+					//Send LOGIN_SUCCESS command to client
+					LoginSuccessCommand loginSuccessCommandMsg = new LoginSuccessCommand("Logged in as user " + username);
+					CommandJsonBuilder<LoginSuccessCommand> loginSuccessCommandJsonBuilder = CommandJsonBuilderFactoryImpl.getInstance()
+							.getJsonBuilder(loginSuccessCommandMsg);
+					
+					JSONObject loginSuccessCommandJsonMsg = loginSuccessCommandJsonBuilder.buildJsonObject(loginSuccessCommandMsg);
+					if(con.writeMsg(loginSuccessCommandJsonMsg.toJSONString())) // Check message sent
+						return false; //will close connection.
+				}
 				
-				JSONObject loginSuccessCommandJsonMsg = loginSuccessCommandJsonBuilder.buildJsonObject(loginSuccessCommandMsg);
-				if(con.writeMsg(loginSuccessCommandJsonMsg.toJSONString())) // Check message sent
-					return false; //will close connection.
-			}
-			
-			//Send LOGIN_FAILED command to client
-			LoginFailedCommand loginFailedCommandMsg = new LoginFailedCommand("Attempt to login with wrong secret");
-			CommandJsonBuilder<LoginFailedCommand> loginFailedCommandJsonBuilder = CommandJsonBuilderFactoryImpl.getInstance()
-					.getJsonBuilder(loginFailedCommandMsg);
-			
-			JSONObject loginFailedCommandJsonMsg = loginFailedCommandJsonBuilder.buildJsonObject(loginFailedCommandMsg);
-			if(con.writeMsg(loginFailedCommandJsonMsg.toJSONString())) // Check message sent
-				return true; //will close connection.
-		}
+				//Send LOGIN_FAILED command to client
+				LoginFailedCommand loginFailedCommandMsg = new LoginFailedCommand("Attempt to login with wrong secret");
+				CommandJsonBuilder<LoginFailedCommand> loginFailedCommandJsonBuilder = CommandJsonBuilderFactoryImpl.getInstance()
+						.getJsonBuilder(loginFailedCommandMsg);
+				
+				JSONObject loginFailedCommandJsonMsg = loginFailedCommandJsonBuilder.buildJsonObject(loginFailedCommandMsg);
+				if(con.writeMsg(loginFailedCommandJsonMsg.toJSONString())) // Check message sent
+					return true; //will close connection.
+				
+			} else if (client_msg.get("command").equals("ACTIVITY_MESSAGE")) {
+						log.debug("ACTIVITY_MESSAGE command received");
+						
+						// Code to process "ACTIVITY_MESSAGE"
+						return false;
+						
+					} else if (client_msg.get("command").equals("LOGOUT")) {
+								return true;
+							} 
 		
-		if (client_msg.get("command").equals("ACTIVITY_MESSAGE")) {
-			log.debug("ACTIVITY_MESSAGE command received");
-			return false;
-		}
+		//Send INVALID_MESSAGE command to client
+		InvalidMessageCommand invalidMessageCommandMsg = new InvalidMessageCommand("The received message did not contain a command");
+		CommandJsonBuilder<InvalidMessageCommand> invalidMessageCommandMsgJsonBuilder = CommandJsonBuilderFactoryImpl.getInstance()
+				.getJsonBuilder(invalidMessageCommandMsg);
 		
-		if (client_msg.get("command").equals("LOGOUT")) {
-			return true;
-		}
-		return true;
+		JSONObject invalidMessageCommandJsonMsg = invalidMessageCommandMsgJsonBuilder.buildJsonObject(invalidMessageCommandMsg);
+		con.writeMsg(invalidMessageCommandJsonMsg.toJSONString());
+		return true; //will close connection.
 	}
 	
 	/*
