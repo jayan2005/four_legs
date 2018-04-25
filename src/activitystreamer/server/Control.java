@@ -63,24 +63,29 @@ public class Control extends Thread {
 	 */
 	public synchronized boolean process(Connection con,String msg){
 		log.debug("Server received : " + msg);
+		String username = null;
+		String secret = null;
 		
 		//Convert msg JSON string to JSON object
 		JSONParser parser = new JSONParser();
 		JSONObject client_msg = new JSONObject();
 		try {
 			client_msg = (JSONObject) parser.parse(msg);
+			
+			if(client_msg.get("command").equals("REGISTER") || client_msg.get("command").equals("LOGIN")) {
+				username = client_msg.get("username").toString();
+				
+				if(client_msg.containsKey("secret"))
+					secret = client_msg.get("secret").toString();
+			}
 		} catch (ParseException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
-		log.debug("Command received : " + client_msg.get("command").toString());
-		
 		if (client_msg.get("command").equals("REGISTER")) {
 			log.debug("REGISTER command received");
 			
-			String username = client_msg.get("username").toString();
-			String secret = client_msg.get("secret").toString();
 			RegisterUser newUser = new RegisterUser(username, secret, listOfUsersAL);
 			
 			if(newUser.addUser()) {
@@ -94,20 +99,25 @@ public class Control extends Thread {
 				}
 				//send message to client
 				return false;
-			} else {
-				// send message user already registered
-				log.debug("User is already registered");
-				return true; //should we close the server connection if user is already registered?
 			}
+			
+			// send message user already registered
+			log.debug("User is already registered");
+			return true; //should we close the server connection if user is already registered?
 		}
 		
 		if (client_msg.get("command").equals("LOGIN")) {
 			log.debug("LOGIN command received");
-
-			String username = client_msg.get("username").toString();
-			String secret = client_msg.get("secret").toString();
 			
-			return false;
+			Login newLogin = new Login(username, secret);
+			if(newLogin.logUserIn()) {
+				System.out.println("User login success");
+				return false;
+			}
+			
+			//Send login fail message
+			System.out.println("User login failed");
+			return true;
 		}
 		
 		if (client_msg.get("command").equals("ACTIVITY_MESSAGE")) {
@@ -185,5 +195,9 @@ public class Control extends Thread {
 	
 	public final ArrayList<Connection> getConnections() {
 		return connections;
+	}
+	
+	public ArrayList<User> getRegisteredUserList(){
+		return this.listOfUsersAL;
 	}
 }
