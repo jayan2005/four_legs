@@ -50,7 +50,7 @@ public class Control extends Thread {
 		}	
 		
 		// connecting to remote server
-		//initiateConnection();
+		initiateConnection();
 	}
 	
 	public void initiateConnection(){
