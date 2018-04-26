@@ -175,16 +175,6 @@ public class ClientSkeleton extends Thread {
 				//openSocket();
 				//sendActivityObject(prevActivityObj);
 	}
-	
-	/*
-	private void saveLoginDetails(JSONObject loginData) {
-		if(loginData.get("command").equals("LOGIN")) {
-			this.username = loginData.get("username").toString();
-			log.debug("username - "+ this.username + " saved.");
-			this.secretPassword = loginData.get("secret").toString();
-			log.debug("password - "+ this.secretPassword + " saved.");
-		}
-	}*/
 
 	public void run() {
 	}

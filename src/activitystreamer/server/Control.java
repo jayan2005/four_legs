@@ -12,6 +12,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
+import activitystreamer.commands.authenticate.AuthenticateCommand;
 import activitystreamer.commands.json.builder.CommandJsonBuilder;
 import activitystreamer.commands.json.builders.impl.CommandJsonBuilderFactoryImpl;
 import activitystreamer.commands.login.LoginFailedCommand;
@@ -27,7 +28,8 @@ public class Control extends Thread {
 	private static ArrayList<Connection> connections;
 	private static boolean term=false;
 	private static Listener listener;
-	private ArrayList<User> listOfUsersAL;
+	private static ArrayList<User> listOfUsersAL;
+	private static Connection remoteServerConnect;
 	
 	protected static Control control = null;
 	
@@ -52,6 +54,9 @@ public class Control extends Thread {
 			log.fatal("failed to startup a listening thread: "+e1);
 			System.exit(-1);
 		}	
+		
+		// connecting to remote server
+		initiateConnection();
 	}
 	
 	public void initiateConnection(){
@@ -102,14 +107,7 @@ public class Control extends Thread {
 			if(newUser.addUser()) {
 				listOfUsersAL = newUser.getUpdatedUserList();
 				log.debug("User registration successful");
-				
-				/*
-				for(int i=0; i < listOfUsersAL.size(); i ++) {
-					User testuser = new User();
-					testuser = listOfUsersAL.get(i);
-					System.out.println("Username : " + testuser.getUsername());
-				}*/
-				
+								
 				//User register success command
 				RegisterSuccessCommand registerSuccessMsg = new RegisterSuccessCommand("Register success for "+ username);
 				CommandJsonBuilder<RegisterSuccessCommand> registerSuccessCommandJsonBuilder = CommandJsonBuilderFactoryImpl.getInstance()
@@ -163,7 +161,10 @@ public class Control extends Thread {
 						
 					} else if (client_msg.get("command").equals("LOGOUT")) {
 								return true;
-							} 
+							} else if (client_msg.get("command").equals("SERVER_ANNOUNCE")) {
+								// code here for handling server announcements
+								return false;
+							}
 		
 		//Send INVALID_MESSAGE command to client
 		InvalidMessageCommand invalidMessageCommandMsg = new InvalidMessageCommand("The received message did not contain a command");
@@ -189,6 +190,8 @@ public class Control extends Thread {
 		log.debug("incomming connection: "+Settings.socketAddress(s));
 		Connection c = new Connection(s);
 		connections.add(c);
+		
+		
 		return c;
 		
 	}
@@ -200,6 +203,16 @@ public class Control extends Thread {
 		log.debug("outgoing connection: "+Settings.socketAddress(s));
 		Connection c = new Connection(s);
 		connections.add(c);
+		
+		// Sending AUTHENTICATE command once server is started
+		AuthenticateCommand authenticateCommand = new AuthenticateCommand(Settings.getSecret());
+		CommandJsonBuilder<AuthenticateCommand> authenticateCommandJsonBuilder = CommandJsonBuilderFactoryImpl.getInstance()
+				.getJsonBuilder(authenticateCommand);
+		
+		JSONObject authenticateCommandJsonMsg = authenticateCommandJsonBuilder.buildJsonObject(authenticateCommand);
+		if(c.writeMsg(authenticateCommandJsonMsg.toJSONString()))
+			log.debug("Remote Connect Request sent : " + c.getSocket() + " // " +authenticateCommandJsonMsg);
+		log.debug("is session opened" + c.isOpen());
 		return c;
 		
 	}
