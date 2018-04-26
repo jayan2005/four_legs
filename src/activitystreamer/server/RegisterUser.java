@@ -2,10 +2,19 @@ package activitystreamer.server;
 
 import java.util.ArrayList;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.json.simple.JSONObject;
+
+import activitystreamer.commands.json.builder.CommandJsonBuilder;
+import activitystreamer.commands.json.builders.impl.CommandJsonBuilderFactoryImpl;
+import activitystreamer.commands.register.RegisterFailedCommand;
+import activitystreamer.commands.register.RegisterSuccessCommand;
 import activitystreamer.util.Settings;
 
 public class RegisterUser {
 	
+	private static final Logger log = LogManager.getLogger();
 	private String username;
 	private String secret;
 	private ArrayList<User> userListAL;
@@ -40,7 +49,7 @@ public class RegisterUser {
 		for(int i=0 ; i < Control.getInstance().getRegisteredUserList().size(); i++) {
 			checkUser = Control.getInstance().getRegisteredUserList().get(i);
 			if(checkUser.getUsername().equals(this.username)) {
-				System.out.print("Checking registry : User Already exists.");
+				log.debug("Checking registry : User Already exists.");
 				return true;
 			}
 		}
@@ -53,17 +62,37 @@ public class RegisterUser {
 		return this.userListAL;
 	}
 	
+	/** sending REGISTER_SUCCESS command **/
+	public void sendRegisterSuccessCommand(Connection con) {
+		RegisterSuccessCommand registerSuccessMsg = new RegisterSuccessCommand("Register success for "+ this.username);
+		CommandJsonBuilder<RegisterSuccessCommand> registerSuccessCommandJsonBuilder = CommandJsonBuilderFactoryImpl.getInstance()
+				.getJsonBuilder(registerSuccessMsg);
+		
+		JSONObject registerSuccessCommandJsonMsg = registerSuccessCommandJsonBuilder.buildJsonObject(registerSuccessMsg);
+		con.writeMsg(registerSuccessCommandJsonMsg.toJSONString());
+	}
+	
+	/** sending REGISTER_FAILED command **/
+	public void sendRegisterFailedCommand(Connection con) {
+		RegisterFailedCommand registerFailedMsg = new RegisterFailedCommand(this.username + " is already registered with the system");
+		CommandJsonBuilder<RegisterFailedCommand> registerFailedCommandJsonBuilder = CommandJsonBuilderFactoryImpl.getInstance()
+				.getJsonBuilder(registerFailedMsg);
+		
+		JSONObject registerFailedCommandJsonMsg = registerFailedCommandJsonBuilder.buildJsonObject(registerFailedMsg);
+		con.writeMsg(registerFailedCommandJsonMsg.toJSONString());	
+	}
+	
 	/** HELPER METHOD - Print out all registered user **/
 	private void printAllUsers() {
 		User printUser = new User();
 		if(!this.userListAL.isEmpty()) {
 			for(int i=0; i < this.userListAL.size(); i++) {
 				printUser = userListAL.get(i);
-				System.out.println("Registered Username : " + printUser.getUsername());
+				log.debug("Registered Username : " + printUser.getUsername());
 			}
 		}
 		
-		System.out.println("No users resgistered at this time.");
+		log.debug("No users resgistered at this time.");
 	}
 
 }
