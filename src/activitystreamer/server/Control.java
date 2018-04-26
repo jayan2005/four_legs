@@ -17,8 +17,6 @@ import activitystreamer.commands.json.builder.CommandJsonBuilder;
 import activitystreamer.commands.json.builders.impl.CommandJsonBuilderFactoryImpl;
 import activitystreamer.commands.misc.InvalidMessageCommand;
 import activitystreamer.commands.misc.LogoutCommand;
-import activitystreamer.commands.register.RegisterFailedCommand;
-import activitystreamer.commands.register.RegisterSuccessCommand;
 import activitystreamer.util.Settings;
 
 public class Control extends Thread {
