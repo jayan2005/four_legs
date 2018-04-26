@@ -9,6 +9,7 @@ public class LoginSuccessCommand extends AbstractCommand {
 
 	public LoginSuccessCommand(String info) {
 		super(Command.Names.LOGIN_SUCCESS.toString());
+		this.info = info;
 	}
 
 	public String getInfo() {
