@@ -16,7 +16,6 @@ import activitystreamer.commands.authenticate.AuthenticateCommand;
 import activitystreamer.commands.json.builder.CommandJsonBuilder;
 import activitystreamer.commands.json.builders.impl.CommandJsonBuilderFactoryImpl;
 import activitystreamer.commands.misc.InvalidMessageCommand;
-import activitystreamer.commands.misc.LogoutCommand;
 import activitystreamer.util.Settings;
 
 public class Control extends Thread {
@@ -25,7 +24,6 @@ public class Control extends Thread {
 	private static boolean term=false;
 	private static Listener listener;
 	private static ArrayList<User> listOfUsersAL;
-	private static Connection remoteServerConnect;
 	
 	protected static Control control = null;
 	
@@ -52,7 +50,7 @@ public class Control extends Thread {
 		}	
 		
 		// connecting to remote server
-		initiateConnection();
+		//initiateConnection();
 	}
 	
 	public void initiateConnection(){
@@ -133,10 +131,16 @@ public class Control extends Thread {
 		// Handling client ACTIVITY_MESSAGE command
 		if (client_msg.get("command").equals("ACTIVITY_MESSAGE")) {
 			log.debug("ACTIVITY_MESSAGE command received");
-
-			// Code to process "ACTIVITY_MESSAGE"
-			return false;
-
+			
+			Login activityMsgUser = new Login(username, secret);
+			if(activityMsgUser.logUserIn()) {
+				// Code to process "ACTIVITY_MESSAGE"
+				log.debug("Broadcast activity message");
+				return false;
+			}			
+			
+			if(activityMsgUser.sendAuthenticationFailCommand(con))
+				return true;
 		} 
 
 		// Handling client LOGOUT command
@@ -253,6 +257,7 @@ public class Control extends Thread {
 		return this.listOfUsersAL;
 	}
 	
+	// send INVALID_MESSAGE
 	public void sendInvalidMessageCommand(Connection con) {
 		InvalidMessageCommand invalidMessageCommandMsg = new InvalidMessageCommand("The received message did not contain a command");
 		CommandJsonBuilder<InvalidMessageCommand> invalidMessageCommandMsgJsonBuilder = CommandJsonBuilderFactoryImpl.getInstance()

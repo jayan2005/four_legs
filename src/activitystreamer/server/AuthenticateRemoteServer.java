@@ -33,8 +33,7 @@ public class AuthenticateRemoteServer {
 				.getInstance().getJsonBuilder(authenticationFailCommandMsg);
 
 		JSONObject authenticationFailCommandJsonMsg = authenticationFailCommandJsonBuilder.buildJsonObject(authenticationFailCommandMsg);
-		if (con.isOpen())
-			con.writeMsg(authenticationFailCommandJsonMsg.toJSONString());
+		con.writeMsg(authenticationFailCommandJsonMsg.toJSONString());
 	}
 	
 	

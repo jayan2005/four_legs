@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import org.json.simple.JSONObject;
 
+import activitystreamer.commands.authenticate.AuthenticationFailCommand;
 import activitystreamer.commands.json.builder.CommandJsonBuilder;
 import activitystreamer.commands.json.builders.impl.CommandJsonBuilderFactoryImpl;
 import activitystreamer.commands.login.LoginFailedCommand;
@@ -64,6 +65,18 @@ public class Login {
 
 		JSONObject loginFailedCommandJsonMsg = loginFailedCommandJsonBuilder.buildJsonObject(loginFailedCommandMsg);
 		con.writeMsg(loginFailedCommandJsonMsg.toJSONString());
+	}
+	
+	/** sending AUTHENTICATION_FAIL command for ACTIVITY_MESSAGE **/
+	public boolean sendAuthenticationFailCommand(Connection con) {
+		
+		AuthenticationFailCommand authenticationFailCommandMsg = new AuthenticationFailCommand("The supplied secret is incorrect : " + this.secret);
+		CommandJsonBuilder<AuthenticationFailCommand> authenticationFailCommandJsonBuilder = CommandJsonBuilderFactoryImpl
+				.getInstance().getJsonBuilder(authenticationFailCommandMsg);
+
+		JSONObject authenticationFailCommandJsonMsg = authenticationFailCommandJsonBuilder.buildJsonObject(authenticationFailCommandMsg);
+		con.writeMsg(authenticationFailCommandJsonMsg.toJSONString());
+		return true;
 	}
 	
 }
