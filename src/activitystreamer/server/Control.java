@@ -93,7 +93,7 @@ public class Control extends Thread {
 					secret = client_msg.get("secret").toString();
 			}
 			
-			log.debug("Secret : " + secret);
+			//log.debug("Secret : " + secret);
 		} catch (ParseException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -127,44 +127,53 @@ public class Control extends Thread {
 			if(con.writeMsg(registerFailedCommandJsonMsg.toJSONString())) // Check message sent
 				return true; //will close connection.
 			
-		} else if (client_msg.get("command").equals("LOGIN")) {
-				log.debug("LOGIN command received");
-				
-				Login newLogin = new Login(username, secret);
-				if(newLogin.logUserIn()) {
-					//System.out.println("User login success");
-					
-					//Send LOGIN_SUCCESS command to client
-					LoginSuccessCommand loginSuccessCommandMsg = new LoginSuccessCommand("Logged in as user " + username);
-					CommandJsonBuilder<LoginSuccessCommand> loginSuccessCommandJsonBuilder = CommandJsonBuilderFactoryImpl.getInstance()
-							.getJsonBuilder(loginSuccessCommandMsg);
-					
-					JSONObject loginSuccessCommandJsonMsg = loginSuccessCommandJsonBuilder.buildJsonObject(loginSuccessCommandMsg);
-					if(con.writeMsg(loginSuccessCommandJsonMsg.toJSONString())) // Check message sent
-						return false; //will close connection.
-				}
-				
-				//Send LOGIN_FAILED command to client
-				LoginFailedCommand loginFailedCommandMsg = new LoginFailedCommand("Attempt to login with wrong secret");
-				CommandJsonBuilder<LoginFailedCommand> loginFailedCommandJsonBuilder = CommandJsonBuilderFactoryImpl.getInstance()
-						.getJsonBuilder(loginFailedCommandMsg);
-				
-				JSONObject loginFailedCommandJsonMsg = loginFailedCommandJsonBuilder.buildJsonObject(loginFailedCommandMsg);
-				if(con.writeMsg(loginFailedCommandJsonMsg.toJSONString())) // Check message sent
-					return true; //will close connection.
-				
-			} else if (client_msg.get("command").equals("ACTIVITY_MESSAGE")) {
-						log.debug("ACTIVITY_MESSAGE command received");
-						
-						// Code to process "ACTIVITY_MESSAGE"
-						return false;
-						
-					} else if (client_msg.get("command").equals("LOGOUT")) {
-								return true;
-							} else if (client_msg.get("command").equals("SERVER_ANNOUNCE")) {
-								// code here for handling server announcements
-								return false;
-							}
+		} 
+
+		if (client_msg.get("command").equals("LOGIN")) {
+			// log.debug("LOGIN command received");
+
+			Login newLogin = new Login(username, secret);
+			if (newLogin.logUserIn()) {
+				// System.out.println("User login success");
+
+				// Send LOGIN_SUCCESS command to client
+				LoginSuccessCommand loginSuccessCommandMsg = new LoginSuccessCommand("Logged in as user " + username);
+				CommandJsonBuilder<LoginSuccessCommand> loginSuccessCommandJsonBuilder = CommandJsonBuilderFactoryImpl
+						.getInstance().getJsonBuilder(loginSuccessCommandMsg);
+
+				JSONObject loginSuccessCommandJsonMsg = loginSuccessCommandJsonBuilder
+						.buildJsonObject(loginSuccessCommandMsg);
+				if (con.writeMsg(loginSuccessCommandJsonMsg.toJSONString())) // Check message sent
+					return false; // will close connection.
+			}
+
+			// Send LOGIN_FAILED command to client
+			LoginFailedCommand loginFailedCommandMsg = new LoginFailedCommand("Attempt to login with wrong secret");
+			CommandJsonBuilder<LoginFailedCommand> loginFailedCommandJsonBuilder = CommandJsonBuilderFactoryImpl
+					.getInstance().getJsonBuilder(loginFailedCommandMsg);
+
+			JSONObject loginFailedCommandJsonMsg = loginFailedCommandJsonBuilder.buildJsonObject(loginFailedCommandMsg);
+			if (con.writeMsg(loginFailedCommandJsonMsg.toJSONString())) // Check message sent
+				return true; // will close connection.
+
+		} 
+
+		if (client_msg.get("command").equals("ACTIVITY_MESSAGE")) {
+			log.debug("ACTIVITY_MESSAGE command received");
+
+			// Code to process "ACTIVITY_MESSAGE"
+			return false;
+
+		} 
+
+		if (client_msg.get("command").equals("LOGOUT")) {
+			return true;
+		} 
+
+		if (client_msg.get("command").equals("SERVER_ANNOUNCE")) {
+			// code here for handling server announcements
+			return false;
+		}
 		
 		//Send INVALID_MESSAGE command to client
 		InvalidMessageCommand invalidMessageCommandMsg = new InvalidMessageCommand("The received message did not contain a command");
