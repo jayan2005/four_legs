@@ -17,6 +17,7 @@ public class AuthenticateRemoteServer {
 		this.received_secret = secret;
 	}
 	
+	/** Checking secret sent by remote server is correct **/
 	public boolean isSecretCorrect() {
 		if(this.received_secret.equals(server_secret))
 			return true;
@@ -24,6 +25,7 @@ public class AuthenticateRemoteServer {
 		return false;
 	}
 	
+	/** AUTHENTICATION_FAIL command handling **/
 	public void sendAuthenticationFailCommand(Connection con) {
 		
 		AuthenticationFailCommand authenticationFailCommandMsg = new AuthenticationFailCommand("The supplied secret is incorrect : " + received_secret);

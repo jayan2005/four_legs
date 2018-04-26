@@ -2,6 +2,12 @@ package activitystreamer.server;
 
 import java.util.ArrayList;
 
+import org.json.simple.JSONObject;
+
+import activitystreamer.commands.json.builder.CommandJsonBuilder;
+import activitystreamer.commands.json.builders.impl.CommandJsonBuilderFactoryImpl;
+import activitystreamer.commands.login.LoginFailedCommand;
+import activitystreamer.commands.login.LoginSuccessCommand;
 import activitystreamer.util.Settings;
 
 public class Login {
@@ -38,6 +44,26 @@ public class Login {
 		return false; // login details are incorrect
 	}
 	
+	/** sending LOGIN_SUCCESS command **/
+	public void sendLoginSuccessCommand(Connection con) {
+		LoginSuccessCommand loginSuccessCommandMsg = new LoginSuccessCommand("Logged in as user " + this.username);
+		CommandJsonBuilder<LoginSuccessCommand> loginSuccessCommandJsonBuilder = CommandJsonBuilderFactoryImpl
+				.getInstance().getJsonBuilder(loginSuccessCommandMsg);
+
+		JSONObject loginSuccessCommandJsonMsg = loginSuccessCommandJsonBuilder
+				.buildJsonObject(loginSuccessCommandMsg);
+		con.writeMsg(loginSuccessCommandJsonMsg.toJSONString());
+	}
 	
+	/** sending LOGIN_FAIL command **/
+	public void sendLoginFailCommand(Connection con) {
+		
+		LoginFailedCommand loginFailedCommandMsg = new LoginFailedCommand("Attempt to login with wrong secret");
+		CommandJsonBuilder<LoginFailedCommand> loginFailedCommandJsonBuilder = CommandJsonBuilderFactoryImpl
+				.getInstance().getJsonBuilder(loginFailedCommandMsg);
+
+		JSONObject loginFailedCommandJsonMsg = loginFailedCommandJsonBuilder.buildJsonObject(loginFailedCommandMsg);
+		con.writeMsg(loginFailedCommandJsonMsg.toJSONString());
+	}
 	
 }
