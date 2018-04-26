@@ -99,6 +99,7 @@ public class Control extends Thread {
 			e.printStackTrace();
 		}
 		
+		// Handling client REGISTER command
 		if (client_msg.get("command").equals("REGISTER")) {
 			//log.debug("REGISTER command received");
 			
@@ -129,6 +130,7 @@ public class Control extends Thread {
 			
 		} 
 
+		// Handling client LOGIN command
 		if (client_msg.get("command").equals("LOGIN")) {
 			// log.debug("LOGIN command received");
 
@@ -157,7 +159,8 @@ public class Control extends Thread {
 				return true; // will close connection.
 
 		} 
-
+		
+		// Handling client ACTIVITY_MESSAGE command
 		if (client_msg.get("command").equals("ACTIVITY_MESSAGE")) {
 			log.debug("ACTIVITY_MESSAGE command received");
 
@@ -166,22 +169,37 @@ public class Control extends Thread {
 
 		} 
 
+		// Handling client LOGOUT command
 		if (client_msg.get("command").equals("LOGOUT")) {
 			return true;
 		} 
-
+		
+		// Handling SERVER_ANNOUNCE command
 		if (client_msg.get("command").equals("SERVER_ANNOUNCE")) {
 			// code here for handling server announcements
 			return false;
 		}
 		
-		//Send INVALID_MESSAGE command to client
-		InvalidMessageCommand invalidMessageCommandMsg = new InvalidMessageCommand("The received message did not contain a command");
-		CommandJsonBuilder<InvalidMessageCommand> invalidMessageCommandMsgJsonBuilder = CommandJsonBuilderFactoryImpl.getInstance()
-				.getJsonBuilder(invalidMessageCommandMsg);
+		// Handling remote server AUTHENTICATE command 
+		if(client_msg.get("command").equals("AUTHENTICATE")) {
+			String serverSecret = client_msg.get("secret").toString();
+			
+			AuthenticateRemoteServer remoteServer = new AuthenticateRemoteServer(serverSecret);
+			if(!remoteServer.isSecretCorrect()) {
+				remoteServer.sendAuthenticationFailCommand(con);
+				return true;
+			}
+			return false;
+		}
 		
-		JSONObject invalidMessageCommandJsonMsg = invalidMessageCommandMsgJsonBuilder.buildJsonObject(invalidMessageCommandMsg);
-		con.writeMsg(invalidMessageCommandJsonMsg.toJSONString());
+		// Handling remote server AUTHENTICATION_FAIL command 
+		if(client_msg.get("command").equals("AUTHENTICATION_FAIL")) {
+			log.debug("Remote sever connection failed - ERROR Command : " + client_msg.toJSONString());
+			return true;
+		}
+		
+		//Send INVALID_MESSAGE command to client
+		sendInvalidMessageCommand(con);
 		return true; //will close connection.
 	}
 	
@@ -199,8 +217,6 @@ public class Control extends Thread {
 		log.debug("incomming connection: "+Settings.socketAddress(s));
 		Connection c = new Connection(s);
 		connections.add(c);
-		
-		
 		return c;
 		
 	}
@@ -220,8 +236,8 @@ public class Control extends Thread {
 		
 		JSONObject authenticateCommandJsonMsg = authenticateCommandJsonBuilder.buildJsonObject(authenticateCommand);
 		if(c.writeMsg(authenticateCommandJsonMsg.toJSONString()))
-			log.debug("Remote Connect Request sent : " + c.getSocket() + " // " +authenticateCommandJsonMsg);
-		log.debug("is session opened" + c.isOpen());
+			log.debug("Remote Server Connect Request sent : " +authenticateCommandJsonMsg);
+		
 		return c;
 		
 	}
@@ -265,6 +281,15 @@ public class Control extends Thread {
 	
 	public ArrayList<User> getRegisteredUserList(){
 		return this.listOfUsersAL;
+	}
+	
+	public void sendInvalidMessageCommand(Connection con) {
+		InvalidMessageCommand invalidMessageCommandMsg = new InvalidMessageCommand("The received message did not contain a command");
+		CommandJsonBuilder<InvalidMessageCommand> invalidMessageCommandMsgJsonBuilder = CommandJsonBuilderFactoryImpl.getInstance()
+				.getJsonBuilder(invalidMessageCommandMsg);
+		
+		JSONObject invalidMessageCommandJsonMsg = invalidMessageCommandMsgJsonBuilder.buildJsonObject(invalidMessageCommandMsg);
+		con.writeMsg(invalidMessageCommandJsonMsg.toJSONString());
 	}
 	
 }
