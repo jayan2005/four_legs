@@ -1,5 +1,7 @@
 package activitystreamer.server;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.json.simple.JSONObject;
 
 import activitystreamer.commands.authenticate.AuthenticationFailCommand;
@@ -9,7 +11,7 @@ import activitystreamer.commands.login.LoginFailedCommand;
 import activitystreamer.util.Settings;
 
 public class AuthenticateRemoteServer {
-	
+	private static final Logger log = LogManager.getLogger();
 	private String server_secret = "jsdfkjhaksjdhcmsdmfsdf";
 	private String received_secret;
 
@@ -33,6 +35,7 @@ public class AuthenticateRemoteServer {
 				.getInstance().getJsonBuilder(authenticationFailCommandMsg);
 
 		JSONObject authenticationFailCommandJsonMsg = authenticationFailCommandJsonBuilder.buildJsonObject(authenticationFailCommandMsg);
+		log.debug("Command::"+authenticationFailCommandJsonMsg);
 		con.writeMsg(authenticationFailCommandJsonMsg.toJSONString());
 	}
 	

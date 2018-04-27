@@ -2,6 +2,8 @@ package activitystreamer.server;
 
 import java.util.ArrayList;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.json.simple.JSONObject;
 
 import activitystreamer.commands.authenticate.AuthenticationFailCommand;
@@ -12,6 +14,7 @@ import activitystreamer.commands.login.LoginSuccessCommand;
 import activitystreamer.util.Settings;
 
 public class Login {
+	private static final Logger log = LogManager.getLogger();
 	private String username;
 	private String secret;
 
@@ -75,6 +78,7 @@ public class Login {
 				.getInstance().getJsonBuilder(authenticationFailCommandMsg);
 
 		JSONObject authenticationFailCommandJsonMsg = authenticationFailCommandJsonBuilder.buildJsonObject(authenticationFailCommandMsg);
+		log.debug("Command::"+authenticationFailCommandJsonMsg);
 		con.writeMsg(authenticationFailCommandJsonMsg.toJSONString());
 		return true;
 	}
