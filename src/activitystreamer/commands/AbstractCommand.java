@@ -15,4 +15,8 @@ public abstract class AbstractCommand implements Command {
 		return name;
 	}
 	
+	@Override
+	public boolean isFailure() {
+		return false;
+	}
 }

@@ -2,6 +2,7 @@ package activitystreamer.client;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -15,6 +16,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.border.Border;
+import javax.swing.border.EmptyBorder;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -37,15 +39,24 @@ public class TextFrame extends JFrame implements ActionListener {
 	private JButton sendButton;
 	private JButton disconnectButton;
 	private JSONParser parser = new JSONParser();
+	private JLabel connectionInfo;
 	
 	public TextFrame(){
 		setTitle("ActivityStreamer Text I/O");
 		
-		
 		JPanel mainPanel = new JPanel();
-		mainPanel.setLayout(new GridLayout(1,2));
+		mainPanel.setLayout(new BorderLayout());
+		
+		JPanel statusPanel = new JPanel(new BorderLayout());
 		JPanel inputPanel = new JPanel();
 		JPanel outputPanel = new JPanel();
+		
+		connectionInfo = new JLabel();
+		
+		setConnectionInfo();
+		statusPanel.setBorder(new EmptyBorder(0,10,0,0));
+		statusPanel.add(connectionInfo,BorderLayout.WEST);
+		
 		inputPanel.setLayout(new BorderLayout());
 		outputPanel.setLayout(new BorderLayout());
 		Border lineBorder = BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.lightGray),"JSON input, to send to server");
@@ -59,14 +70,9 @@ public class TextFrame extends JFrame implements ActionListener {
 		inputPanel.add(scrollPane,BorderLayout.CENTER);
 		
 		JPanel buttonGroup = new JPanel();
-		
-		JLabel connectionInfo = new JLabel();
-		connectionInfo.setText("You are currently connected as " + Settings.getUsername() + " to the server "+ Settings.getRemoteHostname() + " on port "+Settings.getRemotePort());
-		
 		sendButton = new JButton("Send");
 		disconnectButton = new JButton("Disconnect");
 		
-		buttonGroup.add(connectionInfo);
 		buttonGroup.add(sendButton);
 		buttonGroup.add(disconnectButton);
 		inputPanel.add(buttonGroup,BorderLayout.SOUTH);
@@ -78,14 +84,32 @@ public class TextFrame extends JFrame implements ActionListener {
 		scrollPane = new JScrollPane(outputText);
 		outputPanel.add(scrollPane,BorderLayout.CENTER);
 		
-		mainPanel.add(inputPanel);
-		mainPanel.add(outputPanel);
+		statusPanel.setPreferredSize(new Dimension(getWidth(), 80));
+		mainPanel.add(statusPanel,BorderLayout.NORTH);
+		
+		JPanel textPanel = new JPanel(new GridLayout(1,2));
+		textPanel.add(inputPanel);
+		textPanel.add(outputPanel);
+		textPanel.setPreferredSize(new Dimension(getWidth(), 650));
+		mainPanel.add(textPanel,BorderLayout.SOUTH);
+		
 		add(mainPanel);
 		
-		setLocationRelativeTo(null); 
+		
 		setSize(1280,768);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setVisible(true);
+		setResizable(false);
+		setLocationRelativeTo(null); 
+	}
+
+	public void setConnectionInfo() {
+		StringBuilder connectionInfoBuilder = new StringBuilder();
+		connectionInfoBuilder.append("<html><div align=left><br/><b><u>Connection Information:</b></u><br/>");
+		connectionInfoBuilder.append("<i>Username: </i>"+Settings.getUsername()+"<br/>");
+		connectionInfoBuilder.append("<i>Server hostname: </i>"+Settings.getRemoteHostname()+"<br/>");
+		connectionInfoBuilder.append("<i>Server port: </i>"+Settings.getRemotePort()+"<br/></div></html>");
+		connectionInfo.setText(connectionInfoBuilder.toString());
 	}
 
 	public void setOutputText(final JSONObject obj){
@@ -106,7 +130,7 @@ public class TextFrame extends JFrame implements ActionListener {
 			JSONObject obj;
 			try {
 				obj = (JSONObject) parser.parse(msg);
-				ClientSkeleton.getInstance().send(obj);
+				ClientSkeleton.getInstance().sendActivityMessage(obj);
 			} catch (ParseException e1) {
 				JOptionPane.showMessageDialog(this, "invalid JSON object entered into input text field, data not sent");
 				log.error("invalid JSON object entered into input text field, data not sent");

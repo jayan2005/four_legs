@@ -21,5 +21,6 @@ public class LockAllowedCommand extends AbstractCommand {
 	public String getSecret() {
 		return secret;
 	}
+	
 
 }

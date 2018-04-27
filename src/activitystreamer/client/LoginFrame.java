@@ -125,9 +125,9 @@ public class LoginFrame extends JFrame implements ActionListener {
 		setSize(150, 200);
 		setResizable(false);
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-		setLocationRelativeTo(null);
 		pack();
 		setVisible(true);
+		setLocationRelativeTo(null);
 	}
 
 	@Override

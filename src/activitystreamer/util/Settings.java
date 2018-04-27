@@ -8,6 +8,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 public class Settings {
+	
 	private static final Logger log = LogManager.getLogger();
 	private static SecureRandom random = new SecureRandom();
 	private static int localPort = 3780;
@@ -17,7 +18,7 @@ public class Settings {
 	private static int activityInterval = 5000; // milliseconds
 	private static String secret = null;
 	private static String username = "anonymous";
-
+	private static boolean connectionRedirect;
 	
 	public static int getLocalPort() {
 		return localPort;
@@ -96,7 +97,13 @@ public class Settings {
 	    return new BigInteger(130, random).toString(32);
 	 }
 
+	public static boolean isConnectionRedirect() {
+		return connectionRedirect;
+	}
 
+	public static void setConnectionRedirect(boolean connectionRedirect) {
+		Settings.connectionRedirect = connectionRedirect;
+	}
 
 	
 }

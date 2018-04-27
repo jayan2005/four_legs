@@ -17,4 +17,10 @@ public class LoginFailedCommand extends AbstractCommand implements ResultCommand
 	public String getInfo() {
 		return info;
 	}
+	
+	@Override
+	public boolean isFailure() {
+		return true;
+	}
 }
+

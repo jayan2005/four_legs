@@ -21,5 +21,10 @@ public class LockDeniedCommand extends AbstractCommand {
 	public String getSecret() {
 		return secret;
 	}
+	
+	@Override
+	public boolean isFailure() {
+		return true;
+	}
 
 }

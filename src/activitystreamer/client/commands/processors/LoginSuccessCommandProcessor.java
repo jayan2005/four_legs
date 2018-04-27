@@ -2,7 +2,7 @@ package activitystreamer.client.commands.processors;
 
 import activitystreamer.client.ClientUIManager;
 import activitystreamer.commands.login.LoginSuccessCommand;
-import activitystreamer.commands.processors.CommandProcessor;
+import activitystreamer.client.commands.processor.CommandProcessor;
 
 public class LoginSuccessCommandProcessor implements CommandProcessor<LoginSuccessCommand>{
 	

@@ -5,7 +5,7 @@ import java.util.Map;
 
 import activitystreamer.command.Command;
 import activitystreamer.command.Command.Names;
-import activitystreamer.commands.processors.CommandProcessor;
+import activitystreamer.client.commands.processor.CommandProcessor;
 
 @SuppressWarnings("rawtypes")
 public class ClientCommandProcessorFactory {
@@ -24,6 +24,7 @@ public class ClientCommandProcessorFactory {
 		processors.put(Names.REDIRECT.toString(), new RedirectCommandProcessor());
 		
 		processors.put(Names.ACTIVITY_BROADCAST.toString(), new ActivityBroadcastCommandProcessor());
+		processors.put(Names.INVALID_MESSAGE.toString(), new InvalidMessageCommandProcessor());
 	}
 
 	public static ClientCommandProcessorFactory getInstance() {

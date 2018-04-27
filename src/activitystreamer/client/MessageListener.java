@@ -13,7 +13,7 @@ import activitystreamer.client.commands.processors.ClientCommandProcessorFactory
 import activitystreamer.command.Command;
 import activitystreamer.commands.builder.CommandBuilder;
 import activitystreamer.commands.builders.impl.CommandBuilderFactoryImpl;
-import activitystreamer.commands.processors.CommandProcessor;
+import activitystreamer.client.commands.processor.CommandProcessor;
 
 
 @SuppressWarnings("rawtypes")
@@ -43,8 +43,12 @@ public class MessageListener extends Thread {
 					JSONObject jsonObject = (JSONObject) parser.parse(data);
 					CommandBuilder commandBuilder = CommandBuilderFactoryImpl.getInstance().getCommandBuilder(jsonObject);
 					if (commandBuilder != null) {
+						// Build the command
 						Command aCommand = commandBuilder.buildCommandObject(jsonObject);
 						
+						// Validate the command
+						
+						// Process the command
 						CommandProcessor<Command> commandProcessor = ClientCommandProcessorFactory.getInstance().getCommandProcessor(aCommand);
 						commandProcessor.processCommand(aCommand);
 					} else {

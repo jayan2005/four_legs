@@ -30,6 +30,7 @@ public class CommandBuilderFactoryImpl implements CommandBuilderFactory {
 		builders.put(Command.Names.REDIRECT.toString(), new RedirectCommandBuilderImpl());
 		
 		builders.put(Command.Names.ACTIVITY_BROADCAST.toString(), new ActivityBroadcastCommandBuilderImpl());
+		builders.put(Command.Names.INVALID_MESSAGE.toString(), new InvalidMessageCommandBuilderImpl());
 	}
 
 	public static CommandBuilderFactoryImpl getInstance() {

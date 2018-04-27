@@ -1,8 +1,8 @@
 package activitystreamer.client.commands.processors;
 
 import activitystreamer.client.ClientUIManager;
-import activitystreamer.commands.processors.CommandProcessor;
 import activitystreamer.commands.register.RegisterSuccessCommand;
+import activitystreamer.client.commands.processor.CommandProcessor;
 
 public class RegisterSuccessCommandProcessor implements CommandProcessor<RegisterSuccessCommand>{
 	

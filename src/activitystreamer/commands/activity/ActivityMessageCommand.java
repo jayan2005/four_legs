@@ -15,6 +15,7 @@ public class ActivityMessageCommand extends AbstractCommand {
 		super(Command.Names.ACTIVITY_MESSAGE.toString());
 		this.secret = secret;
 		this.username = username;
+		this.activity = activity;
 	}
 
 	public String getSecret() {

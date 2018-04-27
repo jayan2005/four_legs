@@ -18,4 +18,8 @@ public class RegisterFailedCommand extends AbstractCommand implements ResultComm
 		return info;
 	}
 	
+	@Override
+	public boolean isFailure() {
+		return true;
+	}
 }

@@ -6,14 +6,12 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
-import java.net.UnknownHostException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 
+import activitystreamer.commands.activity.ActivityMessageCommand;
 import activitystreamer.commands.json.builder.CommandJsonBuilder;
 import activitystreamer.commands.json.builders.impl.CommandJsonBuilderFactoryImpl;
 import activitystreamer.commands.login.LoginCommand;
@@ -25,7 +23,6 @@ public class ClientSkeleton extends Thread {
 	
 	private static final Logger log = LogManager.getLogger();
 	private static ClientSkeleton clientSolution;
-	private JSONParser parser;
 
 	private Socket socket;
 	private MessageListener messageListener;
@@ -38,7 +35,6 @@ public class ClientSkeleton extends Thread {
 	}
 
 	public ClientSkeleton() {
-		parser = new JSONParser();
 		ClientUIManager.getInstance().showLoginFrame();
 		start();
 	}
@@ -61,6 +57,17 @@ public class ClientSkeleton extends Thread {
 
 		send(loginCommandJson);
 	}
+	
+
+	public void sendActivityMessage(JSONObject obj) {
+		ActivityMessageCommand activityMessageCommand = new ActivityMessageCommand(Settings.getUsername(), Settings.getSecret(),obj);
+
+		CommandJsonBuilder<ActivityMessageCommand> commandJsonBuilder = CommandJsonBuilderFactoryImpl.getInstance()
+				.getJsonBuilder(activityMessageCommand);
+		JSONObject activityMessageCommandJson = commandJsonBuilder.buildJsonObject(activityMessageCommand);
+
+		send(activityMessageCommandJson);
+	}
 
 	public void sendLogoutCommand() {
 		LogoutCommand logoutCommand = new LogoutCommand();
@@ -76,26 +83,6 @@ public class ClientSkeleton extends Thread {
 		Settings.setSecret(null);
 	}
 	
-
-	public JSONObject sendAndReceive(JSONObject request) {
-		JSONObject result = null;
-		try {
-			send(request);
-			DataInputStream input = new DataInputStream(socket.getInputStream());
-			BufferedReader inreader = new BufferedReader(new InputStreamReader(input));
-			String data = inreader.readLine();
-			log.debug("Received from server: " + data);
-			result = (JSONObject) parser.parse(data);
-		} catch (UnknownHostException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (ParseException e) {
-			e.printStackTrace();
-		}
-		return result;
-	}
-
 	public void send(JSONObject request) {
 		try {
 			initializeSocket();
@@ -120,7 +107,7 @@ public class ClientSkeleton extends Thread {
 		}
 	}
 
-	private void closeSocket() {
+	public void closeSocket() {
 		try {
 			socket.close();
 			socket = null;
@@ -149,10 +136,12 @@ public class ClientSkeleton extends Thread {
 	public void startMessageListener() {
 		DataInputStream input;
 		try {
+			log.debug("Starting the message listener");
 			input = new DataInputStream(socket.getInputStream());
 			BufferedReader inreader = new BufferedReader(new InputStreamReader(input));
 			messageListener = new MessageListener(inreader);
 			messageListener.start();
+			log.debug("Started the message listener");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -160,12 +149,15 @@ public class ClientSkeleton extends Thread {
 	
 	public void stopMessageListener() {
 		if (messageListener != null) {
+			log.debug("Stopping the message listener");
 			messageListener.close();
+			log.debug("Stopped the message listener");
 		}
 	}
 	
 	public void run() {
 		
 	}
+
 
 }

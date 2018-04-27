@@ -2,16 +2,16 @@ package activitystreamer.client.commands.processors;
 
 import activitystreamer.client.ClientSkeleton;
 import activitystreamer.client.ClientUIManager;
-import activitystreamer.commands.register.RegisterFailedCommand;
 import activitystreamer.client.commands.processor.CommandProcessor;
+import activitystreamer.commands.misc.InvalidMessageCommand;
 
-public class RegisterFailedCommandProcessor implements CommandProcessor<RegisterFailedCommand> {
+public class InvalidMessageCommandProcessor implements CommandProcessor<InvalidMessageCommand> {
 
 	@Override
-	public void processCommand(RegisterFailedCommand command) {
+	public void processCommand(InvalidMessageCommand command) {
 		ClientSkeleton.getInstance().stopMessageListener();
 		ClientUIManager uiManager = ClientUIManager.getInstance();
-		uiManager.showDialog(uiManager.getLoginFrame(), command.getInfo());
+		uiManager.showMessageAndCloseTextFrame(command.getInfo());
 	}
 
 }

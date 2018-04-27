@@ -1,9 +1,9 @@
-package activitystreamer.commands.processors;
+package activitystreamer.server.commands.processor;
 
 import activitystreamer.command.Command;
 
 public interface CommandProcessor<T extends Command> {
 
-	void processCommand(T command);
+	Command processCommand(T command);
 	
 }

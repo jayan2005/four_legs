@@ -32,4 +32,7 @@ public interface Command {
 	}
 	
 	String getName();
+	
+	boolean isFailure();
+	
 }

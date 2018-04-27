@@ -22,7 +22,7 @@ public class ClientUIManager {
 		}
 		return instance;
 	}
-	
+
 	public void showDialog(JFrame frame, String message) {
 		JOptionPane.showMessageDialog(frame, message);
 	}
@@ -58,11 +58,21 @@ public class ClientUIManager {
 		}
 	}
 
+	public void showMessageAndCloseTextFrame(String message) {
+		if (textFrame != null) {
+			JOptionPane.showMessageDialog(textFrame, message);
+			textFrame.setVisible(false);
+			textFrame = null;
+			showLoginFrame();
+		}
+	}
+
 	public void handleLoginSuccess() {
 		closeLoginFrame();
 		showTextFrame();
+		textFrame.setConnectionInfo();
 	}
-	
+
 	public void handleRegisterSuccess() {
 		closeLoginFrame();
 		showTextFrame();
@@ -72,13 +82,13 @@ public class ClientUIManager {
 		closeTextFrame();
 		showLoginFrame();
 	}
-	
+
 	public LoginFrame getLoginFrame() {
 		return loginFrame;
 	}
-	
+
 	public void updateTextFrame(JSONObject response) {
 		textFrame.setOutputText(response);
 	}
-	
+
 }
