@@ -160,7 +160,8 @@ public class Control extends Thread {
 			String serverSecret = client_msg.get("secret").toString();
 			
 			AuthenticateRemoteServer remoteServer = new AuthenticateRemoteServer(serverSecret);
-			if(!remoteServer.isSecretCorrect()) {    //Authentication fail
+			if(!remoteServer.isSecretCorrect()) {    
+				log.info("AUTHENTICATION failed!!!");
 				remoteServer.sendAuthenticationFailCommand(con);
 				return true;
 			}
