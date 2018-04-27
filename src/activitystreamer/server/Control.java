@@ -50,7 +50,7 @@ public class Control extends Thread {
 		}	
 		
 		// connecting to remote server
-		//initiateConnection();
+		initiateConnection();
 	}
 	
 	public void initiateConnection(){
@@ -95,7 +95,7 @@ public class Control extends Thread {
 		
 		// Handling client REGISTER command
 		if (client_msg.get("command").equals("REGISTER")) {
-			//log.debug("REGISTER command received");
+			//log.info("REGISTER command received");
 			
 			RegisterUser newUser = new RegisterUser(username, secret, listOfUsersAL);
 			
@@ -112,7 +112,7 @@ public class Control extends Thread {
 
 		// Handling client LOGIN command
 		if (client_msg.get("command").equals("LOGIN")) {
-			// log.debug("LOGIN command received");
+			// log.info("LOGIN command received");
 
 			Login newLogin = new Login(username, secret);
 			if (newLogin.logUserIn()) {
@@ -130,12 +130,12 @@ public class Control extends Thread {
 		
 		// Handling client ACTIVITY_MESSAGE command
 		if (client_msg.get("command").equals("ACTIVITY_MESSAGE")) {
-			log.debug("ACTIVITY_MESSAGE command received");
+			log.info("ACTIVITY_MESSAGE command received");
 			
 			Login activityMsgUser = new Login(username, secret);
 			if(activityMsgUser.logUserIn()) {
 				// Code to process "ACTIVITY_MESSAGE"
-				log.debug("Broadcast activity message");
+				log.info("Broadcast activity message");
 				return false;
 			}			
 			
@@ -156,14 +156,28 @@ public class Control extends Thread {
 		
 		// Handling remote server AUTHENTICATE command 
 		if(client_msg.get("command").equals("AUTHENTICATE")) {
+			log.info("Handling AUTHENCIATE command");
 			String serverSecret = client_msg.get("secret").toString();
 			
 			AuthenticateRemoteServer remoteServer = new AuthenticateRemoteServer(serverSecret);
-			if(!remoteServer.isSecretCorrect()) {
+			if(!remoteServer.isSecretCorrect()) {    //Authentication fail
 				remoteServer.sendAuthenticationFailCommand(con);
 				return true;
 			}
-			return false;
+			
+			// AUTHENTICATION SUCCESS - New connection made
+			if(Settings.getLocalHostname()!=null){
+				try {
+					log.info("Servern Secret Match !!!");
+					incomingConnection(new Socket(Settings.getLocalHostname(), Settings.getLocalPort()));
+				} catch (IOException e) {
+					log.error("failed to make connection to "+Settings.getLocalHostname()+":"+Settings.getLocalPort()+" :"+e);
+					System.exit(-1);
+				}
+				return false;
+			}
+			
+			return true;
 		}
 		
 		// Handling remote server AUTHENTICATION_FAIL command 
