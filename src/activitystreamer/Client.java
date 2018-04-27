@@ -69,14 +69,8 @@ public class Client {
 		
 		
 		log.info("starting client");
-		
-		
-		
-		
 			
 		ClientSkeleton c = ClientSkeleton.getInstance(); 
-				
-			
 		
 	}
 

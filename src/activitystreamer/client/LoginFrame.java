@@ -29,8 +29,6 @@ public class LoginFrame extends JFrame implements ActionListener {
 	private JButton registerButton;
 	private JButton loginAnonymouslyButton;
 
-	private JLabel statusLabel;
-
 	public LoginFrame() {
 		setTitle("Activity Streamer");
 
@@ -43,7 +41,6 @@ public class LoginFrame extends JFrame implements ActionListener {
 		JLabel secretLabel = new JLabel("Secret:", JLabel.TRAILING);
 		JLabel serverHostLabel = new JLabel("Server host/IP:", JLabel.TRAILING);
 		JLabel serverPortLabel = new JLabel("Server Port:", JLabel.TRAILING);
-		statusLabel = new JLabel();
 
 		usernameText = new JTextField(25);
 		secretText = new JPasswordField(25);
@@ -138,6 +135,7 @@ public class LoginFrame extends JFrame implements ActionListener {
 		if (e.getSource() == loginButton) {
 			handleLogin(false);
 		} else if (e.getSource() == loginAnonymouslyButton) {
+			Settings.setUsername("anonymous");
 			handleLogin(true);
 		}
 		else if (e.getSource() == registerButton) {
@@ -147,12 +145,7 @@ public class LoginFrame extends JFrame implements ActionListener {
 
 	public void handleRegister() {
 		if (isFormValid()) {
-			Status status = ClientSkeleton.getInstance().register();
-			JOptionPane.showMessageDialog(this, status.getMessage());
-			if (status.isSuccess()) {
-				setVisible(false);
-				ClientUIManager.getInstance().showTextFrame();
-			}
+			ClientSkeleton.getInstance().sendRegisterCommand();
 		}
 	}
 
@@ -169,12 +162,7 @@ public class LoginFrame extends JFrame implements ActionListener {
 	}
 
 	private void doHandleLogin() {
-		Status status = ClientSkeleton.getInstance().login();
-		JOptionPane.showMessageDialog(this, status.getMessage());
-		if (status.isSuccess()) {
-			setVisible(false);
-			ClientUIManager.getInstance().showTextFrame();
-		}
+		ClientSkeleton.getInstance().sendLoginCommand();
 	}
 
 	private boolean isFormValid() {

@@ -2,8 +2,9 @@ package activitystreamer.commands.misc;
 
 import activitystreamer.command.Command;
 import activitystreamer.commands.AbstractCommand;
+import activitystreamer.commands.ResultCommand;
 
-public class InvalidMessageCommand extends AbstractCommand{
+public class InvalidMessageCommand extends AbstractCommand implements ResultCommand{
 
 	private String info;
 	

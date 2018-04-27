@@ -2,9 +2,6 @@ package activitystreamer.client;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.net.SocketException;
-
-import javax.swing.SwingUtilities;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -12,46 +9,59 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
+import activitystreamer.client.commands.processors.ClientCommandProcessorFactory;
+import activitystreamer.command.Command;
+import activitystreamer.commands.builder.CommandBuilder;
+import activitystreamer.commands.builders.impl.CommandBuilderFactoryImpl;
+import activitystreamer.commands.processors.CommandProcessor;
+
+
+@SuppressWarnings("rawtypes")
 public class MessageListener extends Thread {
 
 	private BufferedReader reader;
-	private TextFrame textFrame;
-	private JSONParser parser;
 	private static final Logger log = LogManager.getLogger();
+	private JSONParser parser;
+	private boolean term;
 	
-	public MessageListener(BufferedReader reader,TextFrame textFrame) {
+	public MessageListener(BufferedReader reader) {
 		this.reader = reader;
-		this.textFrame = textFrame;
-		parser = new JSONParser();
+		this.parser = new JSONParser();
+	}
+	
+	public void close() {
+		term = true;
 	}
 	
 	@Override
 	public void run() {
-		
 		try {
-			
-			while (true) {
-				String data = reader.readLine();
+			String data = null;
+			while (!term && (data = reader.readLine()) != null) {
 				log.debug("Received from server: " + data);
 				try {
-					final JSONObject result = (JSONObject) parser.parse(data);
-					SwingUtilities.invokeLater(new Runnable() {
-						public void run() {
-							textFrame.setOutputText(result);
-						}
-					});	
-					
-					if(result.get("command").equals("REDIRECT")){
-						log.debug("Login redirection acttivated");
-						ClientSkeleton.getInstance().redirect(result);
+					JSONObject jsonObject = (JSONObject) parser.parse(data);
+					CommandBuilder commandBuilder = CommandBuilderFactoryImpl.getInstance().getCommandBuilder(jsonObject);
+					if (commandBuilder != null) {
+						Command aCommand = commandBuilder.buildCommandObject(jsonObject);
+						
+						CommandProcessor<Command> commandProcessor = ClientCommandProcessorFactory.getInstance().getCommandProcessor(aCommand);
+						commandProcessor.processCommand(aCommand);
+					} else {
+						log.info("Unknown message received: " + jsonObject.toJSONString());
 					}
 				} catch (ParseException e) {
-					e.printStackTrace();
+					log.error("Message received is not a JSON.");
 				}
 			}
-		} catch (IOException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
+		} catch (IOException ioe) {
+			log.error(ioe);
+		} finally {
+			try {
+				reader.close();
+			} catch (IOException ioe) {
+				log.error(ioe);
+			}
 		}
 	}
 }

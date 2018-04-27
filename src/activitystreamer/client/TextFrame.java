@@ -9,6 +9,8 @@ import java.awt.event.ActionListener;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
@@ -24,6 +26,8 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
+
+import activitystreamer.util.Settings;
 
 @SuppressWarnings("serial")
 public class TextFrame extends JFrame implements ActionListener {
@@ -55,8 +59,14 @@ public class TextFrame extends JFrame implements ActionListener {
 		inputPanel.add(scrollPane,BorderLayout.CENTER);
 		
 		JPanel buttonGroup = new JPanel();
+		
+		JLabel connectionInfo = new JLabel();
+		connectionInfo.setText("You are currently connected as " + Settings.getUsername() + " to the server "+ Settings.getRemoteHostname() + " on port "+Settings.getRemotePort());
+		
 		sendButton = new JButton("Send");
 		disconnectButton = new JButton("Disconnect");
+		
+		buttonGroup.add(connectionInfo);
 		buttonGroup.add(sendButton);
 		buttonGroup.add(disconnectButton);
 		inputPanel.add(buttonGroup,BorderLayout.SOUTH);
@@ -98,11 +108,13 @@ public class TextFrame extends JFrame implements ActionListener {
 				obj = (JSONObject) parser.parse(msg);
 				ClientSkeleton.getInstance().send(obj);
 			} catch (ParseException e1) {
+				JOptionPane.showMessageDialog(this, "invalid JSON object entered into input text field, data not sent");
 				log.error("invalid JSON object entered into input text field, data not sent");
 			}
 			
 		} else if(e.getSource()==disconnectButton){
 			ClientSkeleton.getInstance().disconnect();
+			ClientUIManager.getInstance().handleLogout();
 		}
 	}
 }

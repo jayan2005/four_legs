@@ -14,7 +14,6 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-import activitystreamer.command.Command;
 import activitystreamer.commands.json.builder.CommandJsonBuilder;
 import activitystreamer.commands.json.builders.impl.CommandJsonBuilderFactoryImpl;
 import activitystreamer.commands.login.LoginCommand;
@@ -26,13 +25,10 @@ public class ClientSkeleton extends Thread {
 	
 	private static final Logger log = LogManager.getLogger();
 	private static ClientSkeleton clientSolution;
-	private TextFrame textFrame;
 	private JSONParser parser;
-	private JSONObject prevActivityObj;
-	private String username;
-	private String secretPassword;
 
 	private Socket socket;
+	private MessageListener messageListener;
 
 	public static ClientSkeleton getInstance() {
 		if (clientSolution == null) {
@@ -42,62 +38,49 @@ public class ClientSkeleton extends Thread {
 	}
 
 	public ClientSkeleton() {
-		ClientUIManager.getInstance().showLoginFrame();
 		parser = new JSONParser();
+		ClientUIManager.getInstance().showLoginFrame();
 		start();
 	}
 	
-	public Status register() {
+	public void sendRegisterCommand() {
 		RegisterCommand registerCommand = new RegisterCommand(Settings.getUsername(), Settings.getSecret()); 
 		CommandJsonBuilder<RegisterCommand> commandJsonBuilder = CommandJsonBuilderFactoryImpl.getInstance()
 				.getJsonBuilder(registerCommand);
 		JSONObject registerCommandJson = commandJsonBuilder.buildJsonObject(registerCommand);
 
-		JSONObject resultJsonObject = sendAndReceive(registerCommandJson);
-		Status status = new Status();
-		if (resultJsonObject!=null) {
-			status.setSuccess(Command.Names.REGISTER_SUCCESS.toString().equals(resultJsonObject.get("command")));
-			status.setMessage((String) resultJsonObject.get("info"));
-		}
-		return status;
+		send(registerCommandJson);
 	}
 
-	public Status login() {
+	public void sendLoginCommand() {
 		LoginCommand loginCommand = new LoginCommand(Settings.getUsername(), Settings.getSecret());
 
 		CommandJsonBuilder<LoginCommand> commandJsonBuilder = CommandJsonBuilderFactoryImpl.getInstance()
 				.getJsonBuilder(loginCommand);
 		JSONObject loginCommandJson = commandJsonBuilder.buildJsonObject(loginCommand);
 
-		JSONObject resultJsonObject = sendAndReceive(loginCommandJson);
-		
-		Status status = new Status();
-		if (resultJsonObject!=null) {
-			status.setSuccess(Command.Names.LOGIN_SUCCESS.toString().equals(resultJsonObject.get("command")));
-			status.setMessage((String) resultJsonObject.get("info"));
-		}
-		return status;
+		send(loginCommandJson);
 	}
 
-	public void logout() {
+	public void sendLogoutCommand() {
 		LogoutCommand logoutCommand = new LogoutCommand();
 		CommandJsonBuilder<LogoutCommand> commandJsonBuilder = CommandJsonBuilderFactoryImpl.getInstance()
 				.getJsonBuilder(logoutCommand);
 		JSONObject logoutCommandJson = commandJsonBuilder.buildJsonObject(logoutCommand);
 
+		stopMessageListener();
+		
 		send(logoutCommandJson);
-
-		ClientUIManager.getInstance().closeTextFrame();
-		ClientUIManager.getInstance().showLoginFrame();
+		
+		Settings.setUsername(null);
+		Settings.setSecret(null);
 	}
-	
 	
 
 	public JSONObject sendAndReceive(JSONObject request) {
 		JSONObject result = null;
 		try {
 			send(request);
-
 			DataInputStream input = new DataInputStream(socket.getInputStream());
 			BufferedReader inreader = new BufferedReader(new InputStreamReader(input));
 			String data = inreader.readLine();
@@ -133,12 +116,14 @@ public class ClientSkeleton extends Thread {
 	private void initializeSocket() {
 		if (socket == null || socket.isClosed()) {
 			openSocket();
+			startMessageListener();
 		}
 	}
 
 	private void closeSocket() {
 		try {
 			socket.close();
+			socket = null;
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -156,35 +141,31 @@ public class ClientSkeleton extends Thread {
 	}
 
 	public void disconnect() {
-		logout();
+		sendLogoutCommand();
+		stopMessageListener();
 		closeSocket();
 	}
 	
-	/** handles server redirection **/
-	public void redirect(JSONObject redirect_command) throws IOException {
-			String newHost = redirect_command.get("hostname").toString();
-			int newPort = Integer.parseInt(redirect_command.get("port").toString());
-			
-			closeSocket();
-				log.debug("prevous activity message" + prevActivityObj);
-				log.debug("redirecting to server : " + newHost + ":"+newPort + "...");
-				Settings.setRemoteHostname(newHost);
-				Settings.setRemotePort(newPort);
-				//openSocket();
-				//sendActivityObject(prevActivityObj);
+	public void startMessageListener() {
+		DataInputStream input;
+		try {
+			input = new DataInputStream(socket.getInputStream());
+			BufferedReader inreader = new BufferedReader(new InputStreamReader(input));
+			messageListener = new MessageListener(inreader);
+			messageListener.start();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 	
-	/*
-	private void saveLoginDetails(JSONObject loginData) {
-		if(loginData.get("command").equals("LOGIN")) {
-			this.username = loginData.get("username").toString();
-			log.debug("username - "+ this.username + " saved.");
-			this.secretPassword = loginData.get("secret").toString();
-			log.debug("password - "+ this.secretPassword + " saved.");
+	public void stopMessageListener() {
+		if (messageListener != null) {
+			messageListener.close();
 		}
-	}*/
-
+	}
+	
 	public void run() {
+		
 	}
 
 }

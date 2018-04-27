@@ -1,4 +1,4 @@
-package activitystreamer.commands.processors.impl;
+package activitystreamer.server.commands.processors.impl;
 
 import activitystreamer.command.Command;
 import activitystreamer.commands.processors.CommandProcessor;
